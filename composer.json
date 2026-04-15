@@ -1,0 +1,98 @@
+{
+  "name": "prototype-in/web-skeleton-app",
+  "description": "-",
+  "type": "project",
+  "require": {
+    "monolog/monolog": "*",
+    "oryx/mvc": "dev-develop",
+    "oryx/adr": "dev-develop",
+    "oryx/orm": "dev-develop",
+    "prototype-in/acl": "dev-develop",
+    "prototype-in/rbac": "dev-develop",
+    "prototype-in/abac": "dev-develop",
+    "prototype-in/urn-router": "dev-develop",
+    "prototype-in/oryx": "dev-develop",
+    "prototype-in/stool": "dev-develop",
+    "prototype-in/comet": "dev-develop",
+    "prototype-in/mvvm": "dev-develop"
+  },
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "git@gitlab.com:prototype.in/google/google-city-n-soda-disarray-hash-mixer.git"
+    },
+    {
+      "type": "vcs",
+      "url": "https://gitlab.com/umidigi-ss/mvc.git"
+    },
+    {
+      "type": "vcs",
+      "url": "https://gitlab.com/umidigi-ss/adr.git"
+    },
+    {
+      "type": "vcs",
+      "url": "https://gitlab.com/umidigi-ss/orm.git"
+    },
+    {
+      "type": "vcs",
+      "url": "https://gitlab.com/prototype.in/acl.git"
+    },
+    {
+      "type": "vcs",
+      "url": "https://gitlab.com/prototype.in/rbac.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.com:prototype.in/google/abac.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.com:prototype.in/google/urn-router.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.com:prototype.in/google/oryx.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.com:prototype.in/google/stool.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.com:prototype.in/google/comet.git"
+    },
+    {
+      "type": "vcs",
+      "url": "git@gitlab.com:prototype.in/google/mvvm.git"
+    }
+  ],
+  "require-dev": {
+    "phpunit/phpunit": "*",
+    "mockery/mockery": "*"
+  },
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "PrototypeIn\\App\\": "src/"
+    }
+  },
+  "scripts": {
+    "test": "vendor/bin/phpunit tests",
+    "serve": [
+      "Composer\\Config::disableProcessTimeout",
+      "php -S localhost:8080 -t public"
+    ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "PrototypeIn\\App\\Tests\\": "tests/"
+    }
+  },
+  "authors": [
+    {
+      "name": "Povilas Brilius",
+      "email": "p30311619@gmail.com"
+    }
+  ],
+  "minimum-stability": "dev"
+}
