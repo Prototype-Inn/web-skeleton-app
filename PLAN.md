@@ -11,6 +11,7 @@ The `index.php` file will serve as the single entry point (front controller) and
 ## Directory Structure Proposal
 
 ```
+app/
   /config/                  # Application configuration files
       di.php                # Dependency Injection configuration
       routes.php            # Route definitions
@@ -83,7 +84,7 @@ GEMINI.md
     *   The presentation layer (e.g., using Twig, Blade).
     *   Renders HTML, receiving data primarily from a `ViewModel`.
 
-*   **Dependency Injection Container (e.g., `phpleague/container`, `laminas/service-manager`):**
+*   **Dependency Injection Container (e.g., `league/container`, `laminas/service-manager`):**
     *   Manages the instantiation and wiring of all application components.
     *   Configuration defined in `app/config/di.php`.
 
@@ -92,7 +93,7 @@ GEMINI.md
 1.  **Project Setup & Dependencies:**
     *   Ensure a clean project directory.
     *   Initialize Composer if new (`composer init`), or update existing `composer.json`.
-    *   Add essential dependencies: `composer require prototype-in/urn-router prototype-in/mvvm oryx/adr oryx/orm phpleague/container` (or `laminas/service-manager`). Adjust based on availability and specific needs.
+    *   Add essential dependencies: `composer require prototype-in/urn-router prototype-in/mvvm oryx/adr oryx/orm league/container` (or `laminas/service-manager`). Adjust based on availability and specific needs.
     *   Configure Composer's autoloader in `composer.json` for `app/src/` and `app/src/Kernel/` (if used).
 
 2.  **Directory Structure:**
