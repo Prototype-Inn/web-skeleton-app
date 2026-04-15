@@ -14,7 +14,8 @@
     "prototype-in/oryx": "dev-develop",
     "prototype-in/stool": "dev-develop",
     "prototype-in/comet": "dev-develop",
-    "prototype-in/mvvm": "dev-develop"
+    "prototype-in/mvvm": "dev-develop",
+    "league/container": "4.x-dev"
   },
   "repositories": [
     {
