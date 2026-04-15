@@ -8,39 +8,43 @@ To design and plan a unified web application skeleton that integrates Model-View
 
 The `index.php` file will serve as the single entry point (front controller) and application bootstrap. Request routing will direct incoming requests to ADR `Actions`. These `Actions` will orchestrate business logic via the `Domain` layer and prepare data for presentation using `Responders`. For user interfaces, `MVVM` patterns will be employed, with `ViewModels` bridging the `Responder`'s data and the `View` templates. Dependency Injection will manage component wiring.
 
+Architectural Synergy:
+- MVC principles guide overall separation of concerns
+- ADR provides clear request handling flow (Action → Domain → Responder)
+- MVVM enhances UI layer with ViewModels for complex view logic
+- This hybrid approach leverages strengths of each pattern while maintaining clean boundaries
+
 ## Directory Structure Proposal
 
-```
-app/
-  /config/                  # Application configuration files
-      di.php                # Dependency Injection configuration
-      routes.php            # Route definitions
-      ...
-  /public/                  # Publicly accessible files
-      index.php             # Kernel launcher and front controller
-      .htaccess (or nginx config)
-      assets/               # CSS, JS, Images
-  /src/
-      /Action/              # ADR Actions (request handlers)
-      /Domain/              # Business logic (Models, Services)
-          /Model/           # Data models (ORM entities)
-          /Service/         # Business services
-      /Responder/           # Response generators (API JSON, HTML)
-      /View/                # Presentation templates (e.g., Twig)
-      /ViewModel/           # MVVM ViewModels for UI state management
-      /Infrastructure/      # Database access, external services, etc.
-      /Kernel/              # Core application kernel/bootstrap logic (optional, if complex)
-  /tests/                   # Unit and integration tests
-      /Action/
-      /Domain/
-      /Responder/
-      /ViewModel/
-      ...
+The application follows a structured layout:
+
+config/                 # Configuration files
+   di.php              # Dependency Injection container setup
+   routes.php          # Route definitions
+public/                 # Publicly accessible web root
+   index.php           # Front controller and application bootstrap
+   .htaccess           # Apache configuration (or nginx equivalent)
+   assets/             # Static assets (CSS, JavaScript, images)
+src/                    # Source code
+   Action/             # ADR: Request handlers (Actions)
+   Domain/             # Business logic
+       Model/          # Data models and entities
+       Service/        # Domain services containing business rules
+   Responder/          # ADR: Response generators (JSON, HTML, etc.)
+   View/               # Presentation templates (Twig, Blade, etc.)
+   ViewModel/          # MVVM: Prepares data for views
+   Infrastructure/     # Database access, external services, etc.
+   Kernel/             # Application kernel (optional, for complex bootstrapping)
+tests/                  # Automated tests
+   Action/
+   Domain/
+   Responder/
+   ViewModel/
+       ...
 composer.json
 composer.lock
 README.md
 GEMINI.md
-```
 
 ## Key Components and Responsibilities
 
