@@ -8,6 +8,7 @@ use League\Route\Router;
 use League\Route\Strategy\ApplicationStrategy;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Laminas\Diactoros\ResponseFactory;
+use PrototypeIn\Abac\Factories\AbacServiceFactory;
 use PrototypeIn\App\Responder\HtmlResponder;
 
 $container = new Container();
@@ -47,6 +48,23 @@ $container->addShared(PrototypeIn\App\Responder\HtmlResponder::class, function (
     return new PrototypeIn\App\Responder\HtmlResponder(
         $container->get(Twig\Environment::class)
     );
+});
+
+// Define ABAC Configuration
+$container->addShared('abac.config', function () {
+    // Load application-specific ABAC configuration
+    $appConfigPath = dirname(__DIR__) . '/config/abac.php';
+    if (file_exists($appConfigPath)) {
+        return require $appConfigPath;
+    }
+    // Fallback to vendor default if application config doesn't exist (e.g., during initial setup)
+    return require dirname(__DIR__) . '/vendor/prototype-in/abac/config/abac.php';
+});
+
+// Define ABAC service
+$container->addShared(PrototypeIn\Abac\Services\AbacService::class, function () use ($container) {
+    $config = $container->get('abac.config');
+    return AbacServiceFactory::createFromConfigArray($config);
 });
 
 // Define configuration for the DI container.
