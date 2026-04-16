@@ -15,7 +15,9 @@
     "prototype-in/comet": "dev-develop",
     "prototype-in/mvvm": "dev-develop",
     "league/container": "4.x-dev",
-    "oryx/orm": "dev-develop"
+    "oryx/orm": "dev-develop",
+    "twig/twig": "4.x-dev",
+    "laminas/laminas-httphandlerrunner": "2.14.x-dev"
   },
   "repositories": [
     {

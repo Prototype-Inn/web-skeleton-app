@@ -94,26 +94,27 @@ GEMINI.md
 
 ## Implementation Steps
 
-1.  **Project Setup & Dependencies:**
+1.  **Project Setup & Dependencies:** **DONE**
     *   Ensure a clean project directory.
     *   Initialize Composer if new (`composer init`), or update existing `composer.json`.
     *   Add essential dependencies: `composer require prototype-in/urn-router prototype-in/mvvm oryx/adr oryx/orm league/container` (or `laminas/service-manager`). Adjust based on availability and specific needs.
     *   Configure Composer's autoloader in `composer.json` for `app/src/` and `app/src/Kernel/` (if used).
 
-2.  **Directory Structure:**
+2.  **Directory Structure:** **DONE**
     *   Create the proposed directory structure as outlined above.
 
-3.  **Kernel (`public/index.php`):**
+3.  **Kernel (`public/index.php`):** **DONE**
     *   Implement `index.php` to:
         *   Include Composer's autoloader.
         *   Instantiate the DI container (using configuration from `app/config/di.php`).
         *   Load core application configurations (routes, etc.).
-        *   Set up global error/exception handlers.
-        *   Instantiate and run the router.
-        *   Dispatch the request to the determined `Action`.
+        *   Set up global error and exception handling.
+        *   Manages the HTTP request and response lifecycle.
+        *   Dispatches the request to the router.
+        *   Executes the appropriate `Action` based on the route.
         *   Handle the `Responder`'s output and return the HTTP response.
 
-4.  **Dependency Injection Configuration (`config/di.php`):**
+4.  **Dependency Injection Configuration (`config/di.php`):** **DONE**
     *   Define configurations for the DI container, registering services for:
         *   Router
         *   Kernel/Bootstrap
@@ -125,29 +126,29 @@ GEMINI.md
         *   ViewModels
         *   Configuration objects
 
-5.  **Routing (`config/routes.php`):**
+5.  **Routing (`config/routes.php`):** **DONE**
     *   Define an array or configuration for routes.
     *   Each route should map a URI pattern and HTTP method to an `Action` class.
 
-6.  **ADR Component Implementation:**
+6.  **ADR Component Implementation:** **DONE**
     *   Create base interfaces or abstract classes for `Action`, `Domain/Service`, `Responder`.
     *   Develop example `Action`, `Domain/Service`, and `Responder` implementations within `app/src/` (e.g., `HomePageAction`, `HomePageService`, `HtmlResponder`, `JsonResponder`).
 
-7.  **MVVM Integration:**
+7.  **MVVM Integration:** **DONE**
     *   Define `ViewModel` classes in `app/src/ViewModel/` that aggregate data from `Domain` or `Responder` for specific views.
     *   Update `Responder` implementations to instantiate and populate `ViewModel`s, then pass them to the `View` templating engine.
     *   Configure and set up a templating engine (e.g., Twig) for `app/src/View/`.
 
-8.  **Testing:**
+8.  **Testing:** **DONE**
     *   Configure PHPUnit.
     *   Write basic unit tests for the kernel bootstrap process, router, sample actions, and domain services.
 
 ## Verification
 
-*   Run `composer install` to fetch dependencies.
-*   Start a local development server (e.g., `php -S localhost:8080 -t public/`).
-*   Access defined routes in a browser to verify routing, action execution, and view rendering.
+*   Run `composer install` to fetch dependencies. **DONE**
+*   Start a local development server (e.g., `php -S localhost:8080 -t public/`). **DONE**
+*   Access defined routes in a browser to verify routing, action execution, and view rendering. **DONE**
 *   Test API endpoints if JSON responders are implemented.
-*   Run unit tests using `vendor/bin/phpunit`.
+*   Run unit tests using `vendor/bin/phpunit`. **DONE**
 
 This plan outlines the foundational steps for creating a well-structured web application skeleton that harmoniously integrates MVC, ADR, and MVVM paradigms with a centralized `index.php` kernel.
