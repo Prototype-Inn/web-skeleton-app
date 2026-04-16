@@ -6,7 +6,6 @@
     "monolog/monolog": "*",
     "oryx/mvc": "dev-develop",
     "oryx/adr": "dev-develop",
-    "oryx/orm": "dev-develop",
     "prototype-in/acl": "dev-develop",
     "prototype-in/rbac": "dev-develop",
     "prototype-in/abac": "dev-develop",
@@ -15,7 +14,10 @@
     "prototype-in/stool": "dev-develop",
     "prototype-in/comet": "dev-develop",
     "prototype-in/mvvm": "dev-develop",
-    "league/container": "4.x-dev"
+    "league/container": "4.x-dev",
+    "doctrine/orm": "4.0.x-dev",
+    "ramsey/uuid-doctrine": "dev-main",
+    "doctrine/collections": "3.1.x-dev"
   },
   "repositories": [
     {
@@ -29,10 +31,6 @@
     {
       "type": "vcs",
       "url": "https://gitlab.com/umidigi-ss/adr.git"
-    },
-    {
-      "type": "vcs",
-      "url": "https://gitlab.com/umidigi-ss/orm.git"
     },
     {
       "type": "vcs",
