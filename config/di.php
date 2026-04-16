@@ -8,11 +8,16 @@ use League\Route\Router;
 use League\Route\Strategy\ApplicationStrategy;
 use Psr\Http\Message\ResponseFactoryInterface;
 use Laminas\Diactoros\ResponseFactory;
+use Prototype\Stool\Drivers\RequestLogger\RequestLogger;
+use Prototype\Stool\Middleware\AdrLoggerMiddleware;
+use PrototypeIn\Comet\Http\Middleware\FormSubmissionLogger;
+use Prototype\Stool\Interface\RequestLoggerInterface;
 use PrototypeIn\Abac\Factories\AbacServiceFactory;
 use PrototypeIn\App\Responder\HtmlResponder;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Bramus\Monolog\Formatter\ColoredLineFormatter;
+use Psr\Log\LoggerInterface;
 
 $container = new Container();
 
@@ -84,6 +89,53 @@ $container->addShared(Logger::class, function () {
     $logger->pushHandler($handler);
     return $logger;
 });
+
+// Define Stool Request Logger (shared instance)
+$container->addShared(RequestLoggerInterface::class, function () use ($container) {
+    return new RequestLogger($container->get(Logger::class));
+});
+
+// Define Stool ADR Logger Middleware
+$container->addShared(AdrLoggerMiddleware::class, function () use ($container) {
+    return new AdrLoggerMiddleware(
+        $container->get(RequestLoggerInterface::class),
+        fn($request) => $request->getAttribute('action_name', 'unknown')
+    );
+});
+
+// Define Comet Form Submission Logger Middleware
+$container->addShared(FormSubmissionLogger::class, function () use ($container) {
+    return new FormSubmissionLogger($container->get(Logger::class));
+});
+
+// Unified Logger Bridge - makes app's Monolog available as PSR LoggerInterface
+// This ensures oryx/orm MvcServiceProvider uses the same logger instance
+class UnifiedLoggerServiceProvider extends \League\Container\ServiceProvider\AbstractServiceProvider
+{
+    protected array $provides = [\Psr\Log\LoggerInterface::class, \App\Event\ORMEventListener::class];
+
+    public function register(): void
+    {
+        $container = $this->getContainer();
+        
+        // Bridge Monolog to PSR LoggerInterface for oryx/orm
+        $container->addShared(\Psr\Log\LoggerInterface::class, function () use ($container) {
+            return $container->get(Logger::class);
+        });
+        
+        // Register ORMEventListener with app's logger
+        $container->addShared(\App\Event\ORMEventListener::class, function () use ($container) {
+            return new \App\Event\ORMEventListener($container->get(Logger::class));
+        });
+    }
+
+    public function provides(string $id): bool
+    {
+        return in_array($id, $this->provides, true);
+    }
+}
+
+$container->addServiceProvider(new UnifiedLoggerServiceProvider());
 
 // Define configuration for the DI container.
 // This will be expanded as we implement more components.

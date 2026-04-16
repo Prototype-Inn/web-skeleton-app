@@ -10,6 +10,8 @@ use PrototypeIn\App\Responder\HtmlResponder;
 use League\Route\Http\Exception\NotFoundException;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
 use Monolog\Logger;
+use Prototype\Stool\Middleware\AdrLoggerMiddleware;
+use PrototypeIn\Comet\Http\Middleware\FormSubmissionLogger;
 
 // Include Composer's autoloader
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -45,6 +47,10 @@ $logger->debug('Request received', [
 
 // Initialize the router
 $router = $container->get(Router::class);
+
+// Add global middleware (in order: first to last)
+$router->middleware($container->get(AdrLoggerMiddleware::class));
+$router->middleware($container->get(FormSubmissionLogger::class));
 
 // Add routes to the router
 foreach ($routes as $route) {
