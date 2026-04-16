@@ -15,11 +15,13 @@
     "prototype-in/comet": "dev-develop",
     "prototype-in/mvvm": "dev-develop",
     "league/container": "4.x-dev",
-    "oryx/orm": "dev-develop",
     "twig/twig": "4.x-dev",
     "laminas/laminas-httphandlerrunner": "2.14.x-dev",
     "filp/whoops": "^2.18",
-    "bramus/monolog-colored-line-formatter": "dev-master"
+    "bramus/monolog-colored-line-formatter": "dev-master",
+    "doctrine/orm": "4.0.x-dev",
+    "ramsey/uuid-doctrine": "dev-main",
+    "doctrine/collections": "3.1.x-dev"
   },
   "repositories": [
     {
