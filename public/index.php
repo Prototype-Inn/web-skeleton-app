@@ -9,6 +9,7 @@ use League\Route\Router;
 use PrototypeIn\App\Responder\HtmlResponder;
 use League\Route\Http\Exception\NotFoundException;
 use Laminas\HttpHandlerRunner\Emitter\SapiEmitter;
+use Monolog\Logger;
 
 // Include Composer's autoloader
 require dirname(__DIR__) . '/vendor/autoload.php';
@@ -28,11 +29,19 @@ if (ini_get('display_errors')) {
 /** @var Container $container */
 $container = require dirname(__DIR__) . '/config/di.php';
 
+/** @var Logger $logger */
+$logger = $container->get(Logger::class);
+
 // Load routes
 $routes = require dirname(__DIR__) . '/config/routes.php';
 
 // Create a request
 $request = ServerRequestFactory::fromGlobals();
+
+$logger->debug('Request received', [
+    'method' => $request->getMethod(),
+    'uri' => (string)$request->getUri(),
+]);
 
 // Initialize the router
 $router = $container->get(Router::class);
@@ -46,11 +55,23 @@ foreach ($routes as $route) {
 // Dispatch the request
 try {
     $response = $router->dispatch($request);
+    $logger->debug('Response sent', [
+        'status' => $response->getStatusCode(),
+    ]);
 } catch (NotFoundException $e) {
+    $logger->warning('Route not found', [
+        'uri' => (string)$request->getUri(),
+        'method' => $request->getMethod(),
+    ]);
     $responder = $container->get(HtmlResponder::class);
     $response = $responder->setPayload(['title' => 'Not Found', 'message' => 'Page Not Found'])->setStatusCode(404)();
 } catch (Throwable $e) {
-    // Basic error handling
+    $logger->error('Request failed', [
+        'exception' => get_class($e),
+        'message' => $e->getMessage(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine(),
+    ]);
     $content = '<h1>An Error Occurred!</h1><p>' . htmlspecialchars($e->getMessage()) . '</p><pre>' . htmlspecialchars($e->getTraceAsString()) . '</pre>';
     $response = new HtmlResponse($content, 500);
 }

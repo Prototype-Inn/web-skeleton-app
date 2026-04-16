@@ -125,9 +125,27 @@ php -S localhost:8080 -t public/
 
 Then, open your web browser and navigate to `http://localhost:8080`.
 
+### Logging
+
+The application uses Monolog for logging. Logs are written to `logs/app.log` (gitignored).
+
+Log events include:
+- Request received (method, URI)
+- Route dispatched
+- Response sent (status code)
+- Errors and exceptions
+
+To view logs in real-time:
+
+```bash
+tail -f logs/app.log
+```
+
 ### Testing
 
 Configure PHPUnit and write unit tests for your kernel, router, actions, and domain services.
+
+The project uses Mockery for mocking dependencies in tests.
 
 To run tests:
 

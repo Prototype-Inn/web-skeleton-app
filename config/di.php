@@ -73,7 +73,7 @@ $container->addShared(PrototypeIn\Abac\Services\AbacService::class, function () 
 
 // Define Monolog service
 $container->addShared(Logger::class, function () {
-    $logPath = dirname(__DIR__) . '/var/logs/app.log';
+    $logPath = dirname(__DIR__) . '/logs/app.log';
     if (!is_dir(dirname($logPath))) {
         mkdir(dirname($logPath), 0755, true);
     }

@@ -4,5 +4,5 @@ composer.lock
 #prototype.in QA
 .phpunit.result.cache
 phpunit.xml
-var/
 .phpunit.cache/
+logs/

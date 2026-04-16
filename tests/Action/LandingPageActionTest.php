@@ -4,17 +4,16 @@ declare(strict_types=1);
 
 namespace PrototypeIn\App\Tests\Action;
 
-use PHPUnit\Framework\TestCase;
+use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use PrototypeIn\App\Action\LandingPageAction;
 use PrototypeIn\App\Responder\HtmlResponder;
 use Psr\Http\Message\ResponseInterface;
-use Twig\Environment;
 use PrototypeIn\Abac\Services\AbacService;
 use Laminas\Diactoros\Response\JsonResponse;
 use Laminas\Diactoros\ServerRequest;
 
-class LandingPageActionTest extends TestCase
+class LandingPageActionTest extends MockeryTestCase
 {
     private ServerRequestInterface $request;
 
@@ -23,32 +22,43 @@ class LandingPageActionTest extends TestCase
         $this->request = new ServerRequest();
     }
 
-    private function createStubHtmlResponder(): HtmlResponder
+    private function createMockHtmlResponder(): HtmlResponder
     {
-        $mockTwig = $this->createStub(Environment::class);
-        $mockResponse = $this->createStub(ResponseInterface::class);
+        $mockResponse = \Mockery::mock(ResponseInterface::class);
 
-        $stub = $this->createStub(HtmlResponder::class);
-        $stub->method('setPayload')->willReturn($stub);
-        $stub->method('__invoke')->willReturn($mockResponse);
+        $responder = \Mockery::mock(HtmlResponder::class);
+        $responder->shouldReceive('setPayload')->andReturnSelf();
+        $responder->shouldReceive('__invoke')->andReturn($mockResponse);
 
-        return $stub;
+        return $responder;
     }
 
-    private function createStubAbacService(bool $accessGranted = true): AbacService
+    private function createMockAbacService(bool $accessGranted = true): AbacService
     {
-        $stub = $this->createStub(AbacService::class);
-        $stub->method('evaluateWithMatrix')->willReturn($accessGranted);
-        return $stub;
+        $abac = \Mockery::mock(AbacService::class);
+        $abac->shouldReceive('evaluateWithMatrix')->andReturn($accessGranted);
+        return $abac;
+    }
+
+    private function createMockRequest(): ServerRequestInterface
+    {
+        $request = \Mockery::mock(ServerRequestInterface::class);
+        $request->shouldReceive('getAttribute')->with('user_id', null)->andReturn(null)->byDefault();
+        return $request;
+    }
+
+    protected function tearDown(): void
+    {
+        \Mockery::close();
     }
 
     public function testHandleReturnsLandingPageViewModel(): void
     {
-        $request = $this->createStub(ServerRequestInterface::class);
+        $request = $this->createMockRequest();
         $args = [];
 
-        $responder = $this->createStubHtmlResponder();
-        $abac = $this->createStubAbacService();
+        $responder = $this->createMockHtmlResponder();
+        $abac = $this->createMockAbacService();
 
         $action = new LandingPageAction($responder, $abac);
         $response = $action->handle($request, $args);
@@ -58,8 +68,8 @@ class LandingPageActionTest extends TestCase
 
     public function testLandingPageActionRendersSuccessfullyWhenAccessGranted(): void
     {
-        $responder = $this->createStubHtmlResponder();
-        $abac = $this->createStubAbacService(true);
+        $responder = $this->createMockHtmlResponder();
+        $abac = $this->createMockAbacService(true);
 
         $action = new LandingPageAction($responder, $abac);
         $response = $action->handle($this->request, []);
@@ -69,8 +79,8 @@ class LandingPageActionTest extends TestCase
 
     public function testLandingPageActionReturnsForbiddenWhenAccessDenied(): void
     {
-        $responder = $this->createStubHtmlResponder();
-        $abac = $this->createStubAbacService(false);
+        $responder = $this->createMockHtmlResponder();
+        $abac = $this->createMockAbacService(false);
 
         $action = new LandingPageAction($responder, $abac);
         $response = $action->handle($this->request, []);
