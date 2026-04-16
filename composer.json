@@ -15,9 +15,7 @@
     "prototype-in/comet": "dev-develop",
     "prototype-in/mvvm": "dev-develop",
     "league/container": "4.x-dev",
-    "doctrine/orm": "4.0.x-dev",
-    "ramsey/uuid-doctrine": "dev-main",
-    "doctrine/collections": "3.1.x-dev"
+    "oryx/orm": "dev-develop"
   },
   "repositories": [
     {
@@ -27,6 +25,10 @@
     {
       "type": "vcs",
       "url": "https://gitlab.com/umidigi-ss/mvc.git"
+    },
+    {
+      "type": "vcs",
+      "url": "https://gitlab.com/umidigi-ss/orm.git"
     },
     {
       "type": "vcs",
