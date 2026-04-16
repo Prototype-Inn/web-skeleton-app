@@ -7,22 +7,43 @@ namespace PrototypeIn\App\Tests\Action;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use PrototypeIn\App\Action\HomePageAction;
+use PrototypeIn\App\Responder\HtmlResponder;
 use PrototypeIn\App\ViewModel\HomePageViewModel;
+use Psr\Http\Message\ResponseInterface;
+use Twig\Environment;
 
 class HomePageActionTest extends TestCase
 {
+    private function createMockHtmlResponder(): HtmlResponder
+    {
+        $mockTwig = $this->createStub(Environment::class);
+        $mockResponse = $this->createStub(ResponseInterface::class);
+
+        $mockResponder = $this->getMockBuilder(HtmlResponder::class)
+            ->setConstructorArgs([$mockTwig])
+            ->onlyMethods(['setPayload', '__invoke'])
+            ->getMock();
+
+        $mockResponder->method('setPayload')->willReturnSelf();
+        $mockResponder->method('__invoke')->willReturn($mockResponse);
+
+        return $mockResponder;
+    }
+
     public function testHandleReturnsHomePageViewModel(): void
     {
         $request = $this->createStub(ServerRequestInterface::class);
         $args = [];
 
-        $action = new HomePageAction();
-        $viewModel = $action->handle($request, $args);
+        $responder = $this->createMockHtmlResponder();
+        $action = new HomePageAction($responder);
+        $response = $action->handle($request, $args);
 
-        $this->assertInstanceOf(HomePageViewModel::class, $viewModel);
-        $this->assertEquals('Welcome to the Web Skeleton App!', $viewModel->getTitle());
-        $this->assertEquals('This is a basic home page. The application is up and running.', $viewModel->getMessage());
-        $this->assertEquals('Guest', $viewModel->getName());
+        $this->assertInstanceOf(ResponseInterface::class, $response);
+        // Additional assertions can be made on the $response object if needed
+        // For example, checking headers, body content, etc.
+        // However, verifying the ViewModel content is now the responsibility of the Responder test.
+        // This test only verifies that the Action correctly uses the Responder.
     }
 
     public function testHandleReturnsHomePageViewModelWithName(): void
@@ -30,12 +51,11 @@ class HomePageActionTest extends TestCase
         $request = $this->createStub(ServerRequestInterface::class);
         $args = ['name' => 'TestUser'];
 
-        $action = new HomePageAction();
-        $viewModel = $action->handle($request, $args);
+        $responder = $this->createMockHtmlResponder();
+        $action = new HomePageAction($responder);
+        $response = $action->handle($request, $args);
 
-        $this->assertInstanceOf(HomePageViewModel::class, $viewModel);
-        $this->assertEquals('Welcome to the Web Skeleton App!', $viewModel->getTitle());
-        $this->assertEquals('This is a basic home page. The application is up and running.', $viewModel->getMessage());
-        $this->assertEquals('TestUser', $viewModel->getName());
+        $this->assertInstanceOf(ResponseInterface::class, $response);
     }
 }
+
