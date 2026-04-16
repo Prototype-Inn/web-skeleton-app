@@ -2,18 +2,58 @@
 
 {% block title %}{{ title }}{% endblock %}
 
+{% block head %}
+<style>
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3, #54a0ff);
+    background-size: 400% 400%;
+    animation: rainbow 15s ease infinite;
+    color: #333;
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+@keyframes rainbow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+p {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+a {
+    display: inline-block;
+    background: #333;
+    color: white;
+    padding: 12px 28px;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+}
+
+a:hover {
+    background: #555;
+    color: white;
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container py-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-sm">
-                <div class="card-body text-center">
-                    <h1 class="text-primary mb-4">{{ title }}</h1>
-                    <p class="lead">{{ message }}</p>
-                    <p>Hello, <span class="fw-bold text-info">{{ name }}</span>!</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<h1>{{ title }}</h1>
+<p>Welcome to your dashboard, {{ name }}!</p>
+<a href="/">Go</a>
 {% endblock %}

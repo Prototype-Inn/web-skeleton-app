@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     'role_provider' => [
-        'guest' => ['permissions' => ['landingpage.view']],
+        'guest' => ['permissions' => ['landingpage.view', 'homepage.view']],
         'admin' => ['permissions' => ['landingpage.view', 'homepage.view']],
         'user' => ['permissions' => ['landingpage.view', 'homepage.view']],
     ],
@@ -19,6 +19,9 @@ return [
             'actions' => ['view'],
         ],
         'user::homepage' => [
+            'actions' => ['view'],
+        ],
+        'guest::homepage' => [
             'actions' => ['view'],
         ],
     ],
