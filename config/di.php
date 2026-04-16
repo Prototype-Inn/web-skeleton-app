@@ -10,6 +10,9 @@ use Psr\Http\Message\ResponseFactoryInterface;
 use Laminas\Diactoros\ResponseFactory;
 use PrototypeIn\Abac\Factories\AbacServiceFactory;
 use PrototypeIn\App\Responder\HtmlResponder;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Bramus\Monolog\Formatter\ColoredLineFormatter;
 
 $container = new Container();
 
@@ -64,7 +67,22 @@ $container->addShared('abac.config', function () {
 // Define ABAC service
 $container->addShared(PrototypeIn\Abac\Services\AbacService::class, function () use ($container) {
     $config = $container->get('abac.config');
-    return AbacServiceFactory::createFromConfigArray($config);
+    $logger = $container->get(Logger::class);
+    return AbacServiceFactory::createFromConfigArray($config, $logger);
+});
+
+// Define Monolog service
+$container->addShared(Logger::class, function () {
+    $logPath = dirname(__DIR__) . '/var/logs/app.log';
+    if (!is_dir(dirname($logPath))) {
+        mkdir(dirname($logPath), 0755, true);
+    }
+    $logger = new Logger('app');
+    $handler = new StreamHandler($logPath, Logger::DEBUG);
+    $formatter = new ColoredLineFormatter(null, '[%datetime%] %channel%.%level_name%: %message% %context% %extra%', 'Y-m-d H:i:s');
+    $handler->setFormatter($formatter);
+    $logger->pushHandler($handler);
+    return $logger;
 });
 
 // Define configuration for the DI container.

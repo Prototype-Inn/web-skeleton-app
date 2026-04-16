@@ -17,6 +17,13 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 error_reporting(E_ALL);
 ini_set('display_errors', '1');
 
+// Set up Whoops error handler (development only)
+if (ini_get('display_errors')) {
+    $whoops = new \Whoops\Run();
+    $whoops->prependHandler(new \Whoops\Handler\PrettyPageHandler());
+    $whoops->register();
+}
+
 // Instantiate the DI container
 /** @var Container $container */
 $container = require dirname(__DIR__) . '/config/di.php';
