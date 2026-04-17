@@ -58,3 +58,16 @@ curl -X POST http://localhost:8080/pipeline \
 - **Pipeline**: `src/Pipeline/` - League\Pipeline stages
 - **Events**: `src/Event/` - Doctrine event listeners
 - **Responder**: `src/Responder/` - Convert ViewModels to HTTP responses
+
+## Database Migrations
+
+SQL migrations are stored in `migrations/` directory.
+
+```bash
+# Run migrations manually
+sqlite3 var/data/database.sqlite < migrations/001_roles_sti.sql
+
+# Or use Doctrine schema tool
+php bin/console orm:schema-tool:create
+php bin/console orm:schema-tool:update --force
+```

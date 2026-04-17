@@ -33,6 +33,7 @@ The application follows a structured layout to maintain organization and clarity
 │   ├── cli-config.php        # Doctrine CLI configuration
 │   ├── di.php                # Dependency Injection container setup
 │   └── routes.php            # Route definitions
+├── migrations/               # Database migrations (SQL)
 ├── public/                   # Publicly accessible web root
 │   ├── index.php             # Front controller and application bootstrap
 │   ├── .htaccess             # Apache configuration (or nginx equivalent)
@@ -104,7 +105,13 @@ This project uses Doctrine ORM 4.x with SQLite for data persistence.
    php bin/console orm:schema-tool:create
    ```
 
-2. **Update schema (after entity changes):**
+2. **Run migrations (optional, for additional schema):**
+   ```bash
+   # Run SQL migrations from migrations/ directory
+   sqlite3 var/data/database.sqlite < migrations/001_roles_sti.sql
+   ```
+
+3. **Update schema (after entity changes):**
    ```bash
    php bin/console orm:schema-tool:update --force
    ```

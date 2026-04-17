@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PrototypeIn\App\Domain\Model;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
 
@@ -37,11 +39,16 @@ class User
     #[ORM\Column(name: 'updated_at', type: 'datetime_immutable')]
     private \DateTimeImmutable $updatedAt;
 
+    #[ORM\ManyToMany(targetEntity: RoleBase::class, inversedBy: 'users')]
+    #[ORM\JoinTable(name: 'user_roles')]
+    private Collection $roles;
+
     public function __construct()
     {
         $this->id = Uuid::uuid7();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
+        $this->roles = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -117,5 +124,40 @@ class User
         $this->isActive = $isActive;
         $this->updatedAt = new \DateTimeImmutable();
         return $this;
+    }
+
+    public function getRoles(): array
+    {
+        return $this->roles->toArray();
+    }
+
+    public function addRole(RoleBase $role): self
+    {
+        if (!$this->roles->contains($role)) {
+            $this->roles->add($role);
+            $role->addUser($this);
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+        return $this;
+    }
+
+    public function removeRole(RoleBase $role): self
+    {
+        if ($this->roles->contains($role)) {
+            $this->roles->removeElement($role);
+            $role->removeUser($this);
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+        return $this;
+    }
+
+    public function hasRole(string $roleType): bool
+    {
+        foreach ($this->roles as $role) {
+            if ($role->getRoleType() === $roleType) {
+                return true;
+            }
+        }
+        return false;
     }
 }
