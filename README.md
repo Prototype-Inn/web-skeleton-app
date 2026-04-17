@@ -1,6 +1,15 @@
 # Web Application Skeleton
 
-This project provides a unified web application skeleton integrating Model-View-Controller (MVC), Action-Domain-Responder (ADR), and Model-View-ViewModel (MVVM) paradigms. It is designed around a single `index.php` kernel launcher to provide a clean, structured, and extensible foundation for web applications.
+## Quick Start
+
+```bash
+composer install
+cp .env.dist .env
+php bin/console orm:schema-tool:create
+composer serve
+```
+
+Open http://localhost:8080
 
 ## Architectural Overview
 
@@ -76,7 +85,15 @@ cd my-new-project
 composer install
 ```
 
-### 2. Database Setup (Doctrine ORM + SQLite)
+### 2. Environment Setup
+
+```bash
+cp .env.dist .env
+```
+
+See `.env.dist` for available configuration options.
+
+### 3. Database Setup (Doctrine ORM + SQLite)
 
 This project uses Doctrine ORM 4.x with SQLite for data persistence.
 

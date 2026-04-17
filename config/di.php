@@ -19,6 +19,10 @@ use Monolog\Handler\StreamHandler;
 use Bramus\Monolog\Formatter\ColoredLineFormatter;
 use Psr\Log\LoggerInterface;
 
+$appEnv = getenv('APP_ENV') ?: 'production';
+$appDebug = filter_var(getenv('APP_DEBUG') ?: false, FILTER_VALIDATE_BOOLEAN);
+$dbDriver = getenv('DB_DRIVER') ?: 'pdo_sqlite';
+
 $container = new Container();
 
 // Register the reflection container as a delegate.
@@ -31,10 +35,12 @@ $container->addShared(Twig\Loader\FilesystemLoader::class, function () {
     return new Twig\Loader\FilesystemLoader(dirname(__DIR__) . '/src/View');
 });
 
-$container->addShared(Twig\Environment::class, function () use ($container) {
+$container->addShared(Twig\Environment::class, function () use ($container, $appEnv) {
     $loader = $container->get(Twig\Loader\FilesystemLoader::class);
     return new Twig\Environment($loader, [
-        'cache' => false, // Disable cache for development
+        'cache' => ($appEnv === 'development') ? false : dirname(__DIR__) . '/var/cache/twig',
+        'auto_reload' => ($appEnv === 'development'),
+        'debug' => ($appEnv === 'development'),
     ]);
 });
 
@@ -77,14 +83,24 @@ $container->addShared(PrototypeIn\Abac\Services\AbacService::class, function () 
 });
 
 // Define Monolog service
-$container->addShared(Logger::class, function () {
-    $logPath = dirname(__DIR__) . '/logs/app.log';
+$container->addShared(Logger::class, function () use ($appEnv) {
+    $logPath = ($appEnv === 'development') 
+        ? dirname(__DIR__) . '/logs/app.log'
+        : '/var/log/app.log';
+    
     if (!is_dir(dirname($logPath))) {
         mkdir(dirname($logPath), 0755, true);
     }
+    
     $logger = new Logger('app');
-    $handler = new StreamHandler($logPath, Logger::DEBUG);
-    $formatter = new ColoredLineFormatter(null, '[%datetime%] %channel%.%level_name%: %message% %context% %extra%', 'Y-m-d H:i:s');
+    $handler = new StreamHandler($logPath, ($appEnv === 'development') ? Logger::DEBUG : Logger::INFO);
+    
+    if ($appEnv === 'development') {
+        $formatter = new ColoredLineFormatter(null, '[%datetime%] %channel%.%level_name%: %message% %context% %extra%', 'Y-m-d H:i:s');
+    } else {
+        $formatter = new \Monolog\Formatter\LineFormatter('[%datetime%] %channel%.%level_name%: %message% %context% %extra%');
+    }
+    
     $handler->setFormatter($formatter);
     $logger->pushHandler($handler);
     return $logger;
@@ -138,18 +154,34 @@ class UnifiedLoggerServiceProvider extends \League\Container\ServiceProvider\Abs
 $container->addServiceProvider(new UnifiedLoggerServiceProvider());
 
 // Doctrine ORM Configuration
-$container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () {
+$container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () use ($dbDriver, $appEnv) {
     // Register UUID type for ramsey/uuid-doctrine
     if (!\Doctrine\DBAL\Types\Type::hasType('uuid')) {
         \Doctrine\DBAL\Types\Type::addType('uuid', \Ramsey\Uuid\Doctrine\UuidType::class);
     }
 
-    $isDevMode = true;
     $paths = [dirname(__DIR__) . '/src/Domain/Model'];
-    $dbPath = dirname(__DIR__) . '/var/data/database.sqlite';
+    $isDevMode = ($appEnv === 'development');
 
-    if (!is_dir(dirname($dbPath))) {
-        mkdir(dirname($dbPath), 0755, true);
+    if ($dbDriver === 'pdo_sqlite') {
+        $dbPath = getenv('DB_PATH') ?: dirname(__DIR__) . '/var/data/database.sqlite';
+        if (!is_dir(dirname($dbPath))) {
+            mkdir(dirname($dbPath), 0755, true);
+        }
+        $connectionParams = [
+            'driver' => 'pdo_sqlite',
+            'path' => $dbPath,
+        ];
+    } else {
+        $connectionParams = [
+            'driver' => 'pdo_mysql',
+            'host' => getenv('DB_HOST') ?: 'localhost',
+            'port' => getenv('DB_PORT') ?: 3306,
+            'dbname' => getenv('DB_NAME') ?: 'app',
+            'user' => getenv('DB_USER') ?: 'root',
+            'password' => getenv('DB_PASS') ?: '',
+            'charset' => 'utf8mb4',
+        ];
     }
 
     $config = \Doctrine\ORM\ORMSetup::createAttributeMetadataConfig(
@@ -157,10 +189,7 @@ $container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () {
         isDevMode: $isDevMode
     );
 
-    $connection = \Doctrine\DBAL\DriverManager::getConnection([
-        'driver' => 'pdo_sqlite',
-        'path' => $dbPath,
-    ], $config);
+    $connection = \Doctrine\DBAL\DriverManager::getConnection($connectionParams, $config);
 
     return new \Doctrine\ORM\EntityManager($connection, $config);
 });
