@@ -81,7 +81,7 @@ The application follows a structured layout to maintain organization and clarity
 ### 1. Project Setup & Dependencies
 
 ```bash
-composer create-project prototype-in/web-skeleton-app my-new-project --repository='{"type": "vcs", "url": "https://gitlab.com/prototype.in/web-skeleton-app.git"}' --stability=dev
+composer create-project prototype-in/web-skeleton-app my-naujasis-projet --repository='{"type": "vcs", "url": "https://gitlab.com/prototype.in/web-skeleton-app.git"}' --stability=dev
 cd my-new-project
 composer install
 ```
