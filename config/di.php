@@ -23,9 +23,16 @@ use Psr\Log\LoggerInterface;
 use PrototypeIn\UrnRouter\Contracts\UrnRouterInterface;
 use PrototypeIn\App\Service\UrnRouter;
 use League\Fractal\Manager;
+use PrototypeIn\App\Service\ConfigService;
+use Nette\Schema\Schema as NetteSchema;
 
 $appEnv = getenv('APP_MODE') ?: 'development';
-$dbDriver = getenv('DB_DRIVER') ?: 'pdo_sqlite';
+
+$configData = require dirname(__DIR__) . '/config/config.php';
+$dbSchema = require dirname(__DIR__) . '/config/schema/database.php';
+$configService = new ConfigService($configData, $dbSchema);
+
+$dbDriver = $configService->get('db.driver');
 
 $container = new Container();
 
@@ -178,7 +185,7 @@ $container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () u
     $isDevMode = ($appEnv === 'development');
 
     if ($dbDriver === 'pdo_sqlite') {
-        $dbPath = getenv('DB_PATH') ?: dirname(__DIR__) . '/var/data/database.sqlite';
+        $dbPath = $configService->get('db.path') ?: dirname(__DIR__) . '/var/data/database.sqlite';
         if (!is_dir(dirname($dbPath))) {
             mkdir(dirname($dbPath), 0755, true);
         }
@@ -189,11 +196,11 @@ $container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () u
     } else {
         $connectionParams = [
             'driver' => 'pdo_mysql',
-            'host' => getenv('DB_HOST') ?: 'localhost',
-            'port' => getenv('DB_PORT') ?: 3306,
-            'dbname' => getenv('DB_NAME') ?: 'app',
-            'user' => getenv('DB_USER') ?: 'root',
-            'password' => getenv('DB_PASS') ?: '',
+            'host' => $configService->get('db.host'),
+            'port' => $configService->get('db.port'),
+            'dbname' => $configService->get('db.name'),
+            'user' => $configService->get('db.user'),
+            'password' => $configService->get('db.pass'),
             'charset' => 'utf8mb4',
         ];
     }
