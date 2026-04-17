@@ -34,12 +34,12 @@ $configData = require dirname(__DIR__) . '/config/config.php';
 $dbSchema = require dirname(__DIR__) . '/config/schema/database.php';
 $monologSchema = require dirname(__DIR__) . '/config/schema/monolog.php';
 
-$configBuilder = new ConfigurationBuilder($configData);
-$configBuilder->addSchema($dbSchema);
-$configBuilder->addSchema($monologSchema);
-$appConfig = $configBuilder->build(); // Build the Configuration object
+$config = new League\Config\Configuration();
+$config->addSchema('db', $dbSchema);
+$config->addSchema('logger', $monologSchema);
+$config->merge($configData);
 
-$configService = new ConfigService($appConfig); // Pass the built Configuration object
+$configService = new ConfigService($config); // Pass the configuration object
 
 $dbDriver = $configService->get('db.driver');
 

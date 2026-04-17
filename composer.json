@@ -29,7 +29,7 @@
     "laminas/laminas-validator": "^2.5",
     "laminas/laminas-servicemanager": "^2.6",
     "league/fractal": "1.0.x-dev",
-    "league/config": "*"
+    "league/config": "^1.1"
   },
   "repositories": [
     {
