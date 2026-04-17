@@ -12,11 +12,9 @@ class ConfigService
 {
     private Configuration $config;
 
-    public function __construct(array $configData, NetteSchema $schema)
+    public function __construct(Configuration $config)
     {
-        $configBuilder = new ConfigurationBuilder($configData);
-        $configBuilder->addSchema($schema);
-        $this->config = $configBuilder->build();
+        $this->config = $config;
     }
 
     public function get(string $key, mixed $default = null): mixed

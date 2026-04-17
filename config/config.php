@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Monolog\Logger;
+
 return [
     'db' => [
         'driver' => getenv('DB_DRIVER') ?: 'pdo_sqlite',
@@ -12,4 +14,10 @@ return [
         'user' => getenv('DB_USER') ?: 'root',
         'pass' => getenv('DB_PASS') ?: '',
     ],
+    'logger' => [
+        'name' => 'app',
+        'path' => dirname(__DIR__, 2) . '/logs/app.log', // Default to development path
+        'level' => Logger::DEBUG, // Default to DEBUG for development
+    ],
 ];
+

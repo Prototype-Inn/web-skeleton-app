@@ -24,13 +24,22 @@ use PrototypeIn\UrnRouter\Contracts\UrnRouterInterface;
 use PrototypeIn\App\Service\UrnRouter;
 use League\Fractal\Manager;
 use PrototypeIn\App\Service\ConfigService;
-use Nette\Schema\Schema as NetteSchema;
+use League\Config\ConfigurationBuilder; // Added
+use League\Config\Configuration; // Added
+use Nette\Schema\Schema; // Added
 
 $appEnv = getenv('APP_MODE') ?: 'development';
 
 $configData = require dirname(__DIR__) . '/config/config.php';
 $dbSchema = require dirname(__DIR__) . '/config/schema/database.php';
-$configService = new ConfigService($configData, $dbSchema);
+$monologSchema = require dirname(__DIR__) . '/config/schema/monolog.php';
+
+$configBuilder = new ConfigurationBuilder($configData);
+$configBuilder->addSchema($dbSchema);
+$configBuilder->addSchema($monologSchema);
+$appConfig = $configBuilder->build(); // Build the Configuration object
+
+$configService = new ConfigService($appConfig); // Pass the built Configuration object
 
 $dbDriver = $configService->get('db.driver');
 
@@ -104,17 +113,17 @@ $container->addShared(PrototypeIn\Abac\Services\AbacService::class, function () 
 });
 
 // Define Monolog service
-$container->addShared(Logger::class, function () use ($appEnv) {
-    $logPath = ($appEnv === 'development') 
-        ? dirname(__DIR__) . '/logs/app.log'
-        : '/var/log/app.log';
-    
+$container->addShared(Logger::class, function () use ($configService, $appEnv) {
+    $logPath = $configService->get('logger.path');
+    $logLevel = $configService->get('logger.level');
+    $logName = $configService->get('logger.name');
+
     if (!is_dir(dirname($logPath))) {
         mkdir(dirname($logPath), 0755, true);
     }
     
-    $logger = new Logger('app');
-    $handler = new StreamHandler($logPath, ($appEnv === 'development') ? Logger::DEBUG : Logger::INFO);
+    $logger = new Logger($logName);
+    $handler = new StreamHandler($logPath, $logLevel);
     
     if ($appEnv === 'development') {
         $formatter = new ColoredLineFormatter(null, '[%datetime%] %channel%.%level_name%: %message% %context% %extra%', 'Y-m-d H:i:s');
