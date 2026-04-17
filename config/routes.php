@@ -2,19 +2,11 @@
 
 declare(strict_types=1);
 
-use PrototypeIn\App\Action\HomePageAction;
-use PrototypeIn\App\Action\LandingPageAction;
-use PrototypeIn\App\Action\RegisterAction;
-use PrototypeIn\App\Action\DemoAction;
-use PrototypeIn\App\Action\PipelineDemoAction;
-use PrototypeIn\App\Action\UrnDemoAction;
+$routes = [];
 
-return [
-    ['GET', '/', [LandingPageAction::class, 'handle']],
-    ['GET', '/home', [HomePageAction::class, 'handle']],
-    ['POST', '/register', [RegisterAction::class, 'handle']],
-    ['GET', '/demo', [DemoAction::class, 'show']],
-    ['POST', '/demo', [DemoAction::class, 'submit']],
-    ['POST', '/pipeline', [PipelineDemoAction::class, 'handle']],
-    ['GET', '/urn-demo', [UrnDemoAction::class, 'handle']],
-];
+// Include route groups
+$routes = array_merge($routes, require __DIR__ . '/routes_mvc.php');
+$routes = array_merge($routes, require __DIR__ . '/routes_ajax.php');
+$routes = array_merge($routes, require __DIR__ . '/routes_api.php');
+
+return $routes;
