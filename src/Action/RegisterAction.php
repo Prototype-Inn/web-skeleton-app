@@ -6,6 +6,7 @@ namespace PrototypeIn\App\Action;
 
 use PrototypeIn\App\Domain\Repository\UserRepository;
 use PrototypeIn\App\Domain\Service\PasswordService;
+use PrototypeIn\App\Form\RegisterForm;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Laminas\Diactoros\Response\JsonResponse;
@@ -14,39 +15,40 @@ class RegisterAction
 {
     private UserRepository $userRepository;
     private PasswordService $passwordService;
+    private RegisterForm $form;
 
-    public function __construct(UserRepository $userRepository, PasswordService $passwordService)
-    {
+    public function __construct(
+        UserRepository $userRepository,
+        PasswordService $passwordService,
+        RegisterForm $form
+    ) {
         $this->userRepository = $userRepository;
         $this->passwordService = $passwordService;
+        $this->form = $form;
     }
 
     public function handle(ServerRequestInterface $request, array $args): ResponseInterface
     {
         $data = $request->getParsedBody();
 
-        $email = strtolower($data['email'] ?? '');
-        $password = $data['password'] ?? null;
-        $firstName = $data['firstName'] ?? null;
-        $lastName = $data['lastName'] ?? null;
+        $this->form->setData($data);
 
-        $errors = [];
+        if (!$this->form->isValid()) {
+            $messages = $this->form->getMessages();
+            $errors = [];
 
-        if (empty($email)) {
-            $errors['email'] = 'Email is required';
-        } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            $errors['email'] = 'Invalid email format';
-        }
+            foreach ($messages as $field => $fieldErrors) {
+                $errors[$field] = array_values($fieldErrors)[0] ?? 'Invalid value';
+            }
 
-        if (empty($password)) {
-            $errors['password'] = 'Password is required';
-        } elseif (strlen($password) < 8) {
-            $errors['password'] = 'Password must be at least 8 characters';
-        }
-
-        if (!empty($errors)) {
             return new JsonResponse(['success' => false, 'errors' => $errors], 400);
         }
+
+        $formData = $this->form->getData();
+        $email = $formData['email'] ?? '';
+        $password = $formData['password'] ?? null;
+        $firstName = $formData['firstName'] ?? null;
+        $lastName = $formData['lastName'] ?? null;
 
         $existingUser = $this->userRepository->findByEmail($email);
         if ($existingUser !== null) {

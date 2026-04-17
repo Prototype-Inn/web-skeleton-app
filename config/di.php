@@ -14,6 +14,7 @@ use PrototypeIn\Comet\Http\Middleware\FormSubmissionLogger;
 use Prototype\Stool\Interface\RequestLoggerInterface;
 use PrototypeIn\Abac\Factories\AbacServiceFactory;
 use PrototypeIn\App\Responder\HtmlResponder;
+use PrototypeIn\App\Form\RegisterForm;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Bramus\Monolog\Formatter\ColoredLineFormatter;
@@ -197,6 +198,9 @@ $container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () u
 // Register Domain services
 $container->addShared(PrototypeIn\App\Domain\Service\PasswordService::class);
 $container->addShared(PrototypeIn\App\Domain\Repository\UserRepository::class);
+
+// Register Forms
+$container->addShared(RegisterForm::class);
 
 // Define configuration for the DI container.
 
