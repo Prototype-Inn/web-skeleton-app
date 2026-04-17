@@ -25,7 +25,7 @@ $container->addShared(Twig\Environment::class, function () use ($container) {
 #### Environment-Based Configuration
 Consider using environment variables to switch between environments:
 ```php
-$env = getenv('APP_ENV') ?: 'production';
+$env = getenv('APP_MODE') ?: 'production';
 $twigCache = ($env === 'development') ? false : '/var/www/app/cache/twig';
 ```
 
@@ -215,7 +215,7 @@ $response = $response
 ```
 
 ### Deployment Checklist
-1. Set `APP_ENV=production`
+1. Set `APP_MODE=production`
 2. Verify Twig cache directory permissions
 3. Check log rotation is configured
 4. Test health endpoint returns 200

@@ -9,7 +9,7 @@ use Doctrine\DBAL\DriverManager;
 use Doctrine\ORM\Tools\Console\ConsoleRunner;
 use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
 
-$appEnv = getenv('APP_ENV') ?: 'production';
+$appEnv = getenv('APP_MODE') ?: 'production';
 $dbDriver = getenv('DB_DRIVER') ?: 'pdo_sqlite';
 
 if (!Type::hasType('uuid')) {

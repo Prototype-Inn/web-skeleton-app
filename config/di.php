@@ -24,8 +24,7 @@ use PrototypeIn\UrnRouter\Contracts\UrnRouterInterface;
 use PrototypeIn\App\Service\UrnRouter;
 use League\Fractal\Manager;
 
-$appEnv = getenv('APP_ENV') ?: 'development';
-$appDebug = filter_var(getenv('APP_DEBUG') ?: true, FILTER_VALIDATE_BOOLEAN);
+$appEnv = getenv('APP_MODE') ?: 'development';
 $dbDriver = getenv('DB_DRIVER') ?: 'pdo_sqlite';
 
 $container = new Container();
