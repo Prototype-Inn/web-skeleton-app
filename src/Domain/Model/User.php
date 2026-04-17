@@ -43,12 +43,16 @@ class User
     #[ORM\JoinTable(name: 'user_roles')]
     private Collection $roles;
 
+    #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'author')]
+    private Collection $posts;
+
     public function __construct()
     {
         $this->id = Uuid::uuid7();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
         $this->roles = new ArrayCollection();
+        $this->posts = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -159,5 +163,30 @@ class User
             }
         }
         return false;
+    }
+
+    public function getPosts(): array
+    {
+        return $this->posts->toArray();
+    }
+
+    public function addPost(Post $post): self
+    {
+        if (!$this->posts->contains($post)) {
+            $this->posts->add($post);
+            $post->setAuthor($this);
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+        return $this;
+    }
+
+    public function removePost(Post $post): self
+    {
+        if ($this->posts->contains($post)) {
+            $this->posts->removeElement($post);
+            $post->setAuthor(null);
+            $this->updatedAt = new \DateTimeImmutable();
+        }
+        return $this;
     }
 }
