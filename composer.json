@@ -27,7 +27,8 @@
     "laminas/laminas-form": "^2.6",
     "laminas/laminas-inputfilter": "^2.5",
     "laminas/laminas-validator": "^2.5",
-    "laminas/laminas-servicemanager": "^2.6"
+    "laminas/laminas-servicemanager": "^2.6",
+    "league/fractal": "1.0.x-dev"
   },
   "repositories": [
     {

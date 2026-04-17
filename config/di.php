@@ -20,6 +20,9 @@ use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Bramus\Monolog\Formatter\ColoredLineFormatter;
 use Psr\Log\LoggerInterface;
+use PrototypeIn\UrnRouter\Contracts\UrnRouterInterface;
+use PrototypeIn\App\Service\UrnRouter;
+use League\Fractal\Manager;
 
 $appEnv = getenv('APP_ENV') ?: 'development';
 $appDebug = filter_var(getenv('APP_DEBUG') ?: true, FILTER_VALIDATE_BOOLEAN);
@@ -37,7 +40,7 @@ $container->addShared(Twig\Loader\FilesystemLoader::class, function () {
     return new Twig\Loader\FilesystemLoader(dirname(__DIR__) . '/src/View');
 });
 
-$container->addShared(Twig\Environment::class, function () use ($container, $appEnv) {
+$container->addShared(Twig\Environment::class, function ($container) use ($appEnv) {
     $loader = $container->get(Twig\Loader\FilesystemLoader::class);
     return new Twig\Environment($loader, [
         'cache' => ($appEnv === 'development') ? false : dirname(__DIR__) . '/var/cache/twig',
@@ -59,11 +62,21 @@ $container->addShared(Router::class, function () use ($container) {
     return $router;
 });
 
+// Define URN Router service
+$container->addShared(UrnRouterInterface::class, function () use ($container) {
+    return new PrototypeIn\App\Service\UrnRouter($container);
+});
+
 // Define Application Responders
 $container->addShared(PrototypeIn\App\Responder\HtmlResponder::class, function () use ($container) {
     return new PrototypeIn\App\Responder\HtmlResponder(
         $container->get(Twig\Environment::class)
     );
+});
+
+// Define League\Fractal Manager
+$container->addShared(Manager::class, function () {
+    return new Manager();
 });
 
 // Define ABAC Configuration

@@ -31,6 +31,7 @@ composer test
 | GET | `/demo` | JSON form schema |
 | POST | `/demo` | JSON form submission with MVVM invalidation |
 | POST | `/pipeline` | League\Pipeline demo with stages |
+| GET | `/urn-demo` | Demonstration of URN routing and Fractal transformation |
 
 ## curl Examples
 
