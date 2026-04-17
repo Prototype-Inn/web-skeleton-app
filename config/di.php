@@ -15,13 +15,14 @@ use Prototype\Stool\Interface\RequestLoggerInterface;
 use PrototypeIn\Abac\Factories\AbacServiceFactory;
 use PrototypeIn\App\Responder\HtmlResponder;
 use PrototypeIn\App\Form\RegisterForm;
+use PrototypeIn\App\Form\DemoForm;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Bramus\Monolog\Formatter\ColoredLineFormatter;
 use Psr\Log\LoggerInterface;
 
-$appEnv = getenv('APP_ENV') ?: 'production';
-$appDebug = filter_var(getenv('APP_DEBUG') ?: false, FILTER_VALIDATE_BOOLEAN);
+$appEnv = getenv('APP_ENV') ?: 'development';
+$appDebug = filter_var(getenv('APP_DEBUG') ?: true, FILTER_VALIDATE_BOOLEAN);
 $dbDriver = getenv('DB_DRIVER') ?: 'pdo_sqlite';
 
 $container = new Container();
@@ -197,10 +198,18 @@ $container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () u
 
 // Register Domain services
 $container->addShared(PrototypeIn\App\Domain\Service\PasswordService::class);
-$container->addShared(PrototypeIn\App\Domain\Repository\UserRepository::class);
+$container->addShared(PrototypeIn\App\Domain\Repository\UserRepository::class, function () use ($container) {
+    return new PrototypeIn\App\Domain\Repository\UserRepository(
+        $container->get(\Doctrine\ORM\EntityManagerInterface::class)
+    );
+});
 
 // Register Forms
 $container->addShared(RegisterForm::class);
+$container->addShared(DemoForm::class);
+
+// Register Pipeline
+$container->addShared(PrototypeIn\App\Pipeline\RequestProcessingPipeline::class);
 
 // Define configuration for the DI container.
 

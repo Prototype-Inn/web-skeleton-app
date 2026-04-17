@@ -15,6 +15,7 @@
     "prototype-in/comet": "dev-develop",
     "prototype-in/mvvm": "dev-develop",
     "league/container": "4.x-dev",
+    "league/pipeline": "dev-master",
     "twig/twig": "4.x-dev",
     "laminas/laminas-httphandlerrunner": "2.14.x-dev",
     "filp/whoops": "^2.18",
