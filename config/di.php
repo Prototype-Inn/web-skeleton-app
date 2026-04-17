@@ -112,7 +112,7 @@ $container->addShared(FormSubmissionLogger::class, function () use ($container) 
 // This ensures oryx/orm MvcServiceProvider uses the same logger instance
 class UnifiedLoggerServiceProvider extends \League\Container\ServiceProvider\AbstractServiceProvider
 {
-    protected array $provides = [\Psr\Log\LoggerInterface::class, \App\Event\ORMEventListener::class];
+    protected array $provides = [\Psr\Log\LoggerInterface::class, \PrototypeIn\App\Event\ORMEventListener::class];
 
     public function register(): void
     {
@@ -124,8 +124,8 @@ class UnifiedLoggerServiceProvider extends \League\Container\ServiceProvider\Abs
         });
         
         // Register ORMEventListener with app's logger
-        $container->addShared(\App\Event\ORMEventListener::class, function () use ($container) {
-            return new \App\Event\ORMEventListener($container->get(Logger::class));
+        $container->addShared(\PrototypeIn\App\Event\ORMEventListener::class, function () use ($container) {
+            return new \PrototypeIn\App\Event\ORMEventListener($container->get(Logger::class));
         });
     }
 
@@ -137,7 +137,38 @@ class UnifiedLoggerServiceProvider extends \League\Container\ServiceProvider\Abs
 
 $container->addServiceProvider(new UnifiedLoggerServiceProvider());
 
+// Doctrine ORM Configuration
+$container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () {
+    // Register UUID type for ramsey/uuid-doctrine
+    if (!\Doctrine\DBAL\Types\Type::hasType('uuid')) {
+        \Doctrine\DBAL\Types\Type::addType('uuid', \Ramsey\Uuid\Doctrine\UuidType::class);
+    }
+
+    $isDevMode = true;
+    $paths = [dirname(__DIR__) . '/src/Domain/Model'];
+    $dbPath = dirname(__DIR__) . '/var/data/database.sqlite';
+
+    if (!is_dir(dirname($dbPath))) {
+        mkdir(dirname($dbPath), 0755, true);
+    }
+
+    $config = \Doctrine\ORM\ORMSetup::createAttributeMetadataConfig(
+        paths: $paths,
+        isDevMode: $isDevMode
+    );
+
+    $connection = \Doctrine\DBAL\DriverManager::getConnection([
+        'driver' => 'pdo_sqlite',
+        'path' => $dbPath,
+    ], $config);
+
+    return new \Doctrine\ORM\EntityManager($connection, $config);
+});
+
+// Register Domain services
+$container->addShared(PrototypeIn\App\Domain\Service\PasswordService::class);
+$container->addShared(PrototypeIn\App\Domain\Repository\UserRepository::class);
+
 // Define configuration for the DI container.
-// This will be expanded as we implement more components.
 
 return $container;

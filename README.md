@@ -18,28 +18,30 @@ The application follows a structured layout to maintain organization and clarity
 
 ```
 .
-├── config/                 # Configuration files
-│   ├── di.php              # Dependency Injection container setup
-│   └── routes.php          # Route definitions
-├── public/                 # Publicly accessible web root
-│   ├── index.php           # Front controller and application bootstrap
-│   ├── .htaccess           # Apache configuration (or nginx equivalent)
-│   └── assets/             # Static assets (CSS, JavaScript, images)
-├── src/                    # Source code
-│   ├── Action/             # ADR: Request handlers (Actions)
-│   ├── Domain/             # Business logic
-│   │   ├── Model/          # Data models and entities
+├── bin/
+│   └── console               # Doctrine CLI console
+├── config/
+│   ├── cli-config.php        # Doctrine CLI configuration
+│   ├── di.php                # Dependency Injection container setup
+│   └── routes.php            # Route definitions
+├── public/                   # Publicly accessible web root
+│   ├── index.php             # Front controller and application bootstrap
+│   ├── .htaccess             # Apache configuration (or nginx equivalent)
+│   └── assets/               # Static assets (CSS, JavaScript, images)
+├── src/                      # Source code
+│   ├── Action/               # ADR: Request handlers (Actions)
+│   ├── Domain/              # Business logic
+│   │   ├── Model/           # Data models and entities
+│   │   ├── Repository/      # Data repositories
 │   │   └── Service/        # Domain services containing business rules
-│   ├── Responder/          # ADR: Response generators (JSON, HTML, etc.)
-│   ├── View/               # Presentation templates (Twig, Blade, etc.)
-│   ├── ViewModel/          # MVVM: Prepares data for views
-│   ├── Infrastructure/     # Database access, external services, etc.
-│   └── Kernel/             # Application kernel (optional, for complex bootstrapping)
-├── tests/                  # Automated tests
-│   ├── Action/
-│   ├── Domain/
-│   ├── Responder/
-│   └── ViewModel/
+│   ├── Responder/           # ADR: Response generators (JSON, HTML, etc.)
+│   ├── View/                # Presentation templates (Twig, Blade, etc.)
+│   ├── ViewModel/           # MVVM: Prepares data for views
+│   └── Event/               # Event listeners
+├── var/
+│   └── data/                # Database files (sqlite)
+│       └── database.sqlite
+├── tests/                    # Automated tests
 ├── composer.json
 ├── composer.lock
 └── README.md
@@ -66,58 +68,45 @@ The application follows a structured layout to maintain organization and clarity
 
 ## Getting Started
 
-Follow these steps to set up and run the application skeleton:
-
 ### 1. Project Setup & Dependencies
-
-Ensure you have Composer installed.
 
 ```bash
 composer create-project prototype-in/web-skeleton-app my-new-project --repository='{"type": "vcs", "url": "https://gitlab.com/prototype.in/web-skeleton-app.git"}' --stability=dev
 cd my-new-project
+composer install
 ```
 
-Then, install the necessary dependencies:
+### 2. Database Setup (Doctrine ORM + SQLite)
 
-```bash
-composer require prototype-in/urn-router prototype-in/mvvm oryx/adr oryx/orm league/container
-```
-*(Note: `league/container` or `laminas/service-manager` can be used for DI. This example uses `league/container`.)*
+This project uses Doctrine ORM 4.x with SQLite for data persistence.
 
-### 2. Directory Structure
+#### Quick Start
 
-The project already includes the proposed directory structure.
+1. **Create database schema:**
+   ```bash
+   php bin/console orm:schema-tool:create
+   ```
 
-### 3. Kernel (`public/index.php`)
+2. **Update schema (after entity changes):**
+   ```bash
+   php bin/console orm:schema-tool:update --force
+   ```
 
-The `index.php` file will contain the application bootstrap logic. You will need to implement its content to:
-*   Include Composer's autoloader.
-*   Instantiate the DI container (using configuration from `config/di.php`).
-*   Load core application configurations (routes, etc.).
-*   Set up global error/exception handlers.
-*   Instantiate and run the router.
-*   Dispatch the request to the determined `Action`.
-*   Handle the `Responder`'s output and return the HTTP response.
+#### Available Commands
 
-### 4. Dependency Injection Configuration (`config/di.php`)
+| Command | Description |
+|---------|-------------|
+| `php bin/console orm:schema-tool:create` | Create schema from entities |
+| `php bin/console orm:schema-tool:update` | Update schema (safe for dev) |
+| `php bin/console orm:schema-tool:drop --force` | Drop all tables |
+| `php bin/console orm:info` | Show entity mapping info |
+| `php bin/console orm:validate-schema` | Validate ORM schema |
 
-Define your DI container configurations in `config/di.php`, registering services for the router, actions, domain services, responders, ORM, templating engine, and view models.
+#### Database Location
 
-### 5. Routing (`config/routes.php`)
+- SQLite database: `var/data/database.sqlite`
 
-Define your application routes in `config/routes.php`, mapping URI patterns and HTTP methods to specific `Action` classes.
-
-### 6. ADR Component Implementation
-
-Create your `Action`, `Domain/Service`, and `Responder` implementations within the `src/` directory.
-
-### 7. MVVM Integration
-
-Define your `ViewModel` classes in `src/ViewModel/` and configure a templating engine (e.g., Twig) in `src/View/`. Your `Responder`s will then instantiate and populate `ViewModel`s to pass to the `View`.
-
-### Running the Application
-
-To run the application locally, you can use PHP's built-in web server:
+### 3. Running the Application
 
 ```bash
 php -S localhost:8080 -t public/
@@ -125,15 +114,17 @@ php -S localhost:8080 -t public/
 
 Then, open your web browser and navigate to `http://localhost:8080`.
 
-### Logging
+### 4. Example: Register User
+
+```bash
+curl -X POST http://localhost:8080/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"test@example.com","password":"password123","firstName":"John","lastName":"Doe"}'
+```
+
+### 5. Logging
 
 The application uses Monolog for logging. Logs are written to `logs/app.log` (gitignored).
-
-Log events include:
-- Request received (method, URI)
-- Route dispatched
-- Response sent (status code)
-- Errors and exceptions
 
 To view logs in real-time:
 
@@ -141,15 +132,10 @@ To view logs in real-time:
 tail -f logs/app.log
 ```
 
-### Testing
-
-Configure PHPUnit and write unit tests for your kernel, router, actions, and domain services.
-
-The project uses Mockery for mocking dependencies in tests.
-
-To run tests:
+### 6. Testing
 
 ```bash
+composer test
+# or
 vendor/bin/phpunit
 ```
-

@@ -1,0 +1,36 @@
+<?php
+
+declare(strict_types=1);
+
+use Doctrine\DBAL\Types\Type;
+use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\ORMSetup;
+use Doctrine\DBAL\DriverManager;
+use Doctrine\ORM\Tools\Console\ConsoleRunner;
+use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
+
+// Register UUID type for ramsey/uuid-doctrine
+if (!Type::hasType('uuid')) {
+    Type::addType('uuid', \Ramsey\Uuid\Doctrine\UuidType::class);
+}
+
+$paths = [dirname(__DIR__) . '/src/Domain/Model'];
+$isDevMode = true;
+$dbPath = dirname(__DIR__) . '/var/data/database.sqlite';
+
+if (!is_dir(dirname($dbPath))) {
+    mkdir(dirname($dbPath), 0755, true);
+}
+
+$config = ORMSetup::createAttributeMetadataConfig($paths, $isDevMode);
+
+$connection = DriverManager::getConnection([
+    'driver' => 'pdo_sqlite',
+    'path' => $dbPath,
+], $config);
+
+$entityManager = new EntityManager($connection, $config);
+
+$provider = new SingleManagerProvider($entityManager);
+
+ConsoleRunner::run($provider);
