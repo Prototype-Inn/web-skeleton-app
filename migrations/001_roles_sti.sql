@@ -21,11 +21,12 @@ INSERT INTO roles (role_type, name, description, created_at, updated_at) VALUES
 
 -- User-Role Many-to-Many pivot table
 CREATE TABLE IF NOT EXISTS user_roles (
-    user_id BINARY(16) NOT NULL,
-    role_id INTEGER NOT NULL,
-    PRIMARY KEY (user_id, role_id),
-    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+    user_id CHAR(36) NOT NULL,
+    rolebase_id INTEGER NOT NULL,
+    PRIMARY KEY (user_id, rolebase_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE NO ACTION,
+    FOREIGN KEY (rolebase_id) REFERENCES roles(id) ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
 CREATE INDEX IF NOT EXISTS idx_user_roles_user ON user_roles(user_id);
-CREATE INDEX IF NOT EXISTS idx_user_roles_role ON user_roles(role_id);
+CREATE INDEX IF NOT EXISTS idx_user_roles_role ON user_roles(rolebase_id);
