@@ -39,7 +39,7 @@ $container->addShared(Twig\Loader\FilesystemLoader::class, function () {
     return new Twig\Loader\FilesystemLoader(dirname(__DIR__) . '/src/View');
 });
 
-$container->addShared(Twig\Environment::class, function ($container) use ($appEnv) {
+$container->addShared(Twig\Environment::class, function () use ($container, $appEnv) {
     $loader = $container->get(Twig\Loader\FilesystemLoader::class);
     return new Twig\Environment($loader, [
         'cache' => ($appEnv === 'development') ? false : dirname(__DIR__) . '/var/cache/twig',
