@@ -4,116 +4,136 @@ declare(strict_types=1);
 
 namespace PrototypeIn\App\Form;
 
-use Laminas\Filter\StringTrim;
-use Laminas\Filter\StringToLower;
-use Laminas\Form\Form;
-use Laminas\Form\Element\Email;
-use Laminas\Form\Element\Password;
-use Laminas\Form\Element\Text;
-use Laminas\InputFilter\InputFilterProviderInterface;
-use Laminas\Validator\EmailAddress;
-use Laminas\Validator\StringLength;
+use Symfony\Component\Form\Extension\Core\Type\EmailType;
+use Symfony\Component\Form\Extension\Core\Type\PasswordType;
+use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\Forms;
+use Symfony\Component\Validator\Constraints\Email;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Validation;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-class RegisterForm extends Form implements InputFilterProviderInterface
+class RegisterForm
 {
-    public function __construct($name = 'register', $options = [])
+    private ?FormInterface $form = null;
+    private FormFactoryInterface $formFactory;
+    private ValidatorInterface $validator;
+    private array $errors = [];
+
+    public function __construct(?FormFactoryInterface $formFactory = null, ?ValidatorInterface $validator = null)
     {
-        parent::__construct($name, $options);
-        $this->init();
+        $this->formFactory = $formFactory ?? Forms::createFormFactory();
+        $this->validator = $validator ?? Validation::createValidator();
     }
 
-    public function init(): void
+    public function setData(array $data): void
     {
-        $this->add([
-            'name' => 'email',
-            'type' => Email::class,
-            'options' => [
+        $form = $this->formFactory->createBuilder()
+            ->add('email', EmailType::class, [
                 'label' => 'Email',
-            ],
-        ]);
-
-        $this->add([
-            'name' => 'password',
-            'type' => Password::class,
-            'options' => [
+                'required' => true,
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'email@example.com',
+                ],
+            ])
+            ->add('password', PasswordType::class, [
                 'label' => 'Password',
-            ],
-        ]);
-
-        $this->add([
-            'name' => 'firstName',
-            'type' => Text::class,
-            'options' => [
+                'required' => true,
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => '********',
+                ],
+            ])
+            ->add('firstName', TextType::class, [
                 'label' => 'First Name',
-            ],
-        ]);
-
-        $this->add([
-            'name' => 'lastName',
-            'type' => Text::class,
-            'options' => [
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'John',
+                ],
+            ])
+            ->add('lastName', TextType::class, [
                 'label' => 'Last Name',
-            ],
-        ]);
+                'required' => false,
+                'attr' => [
+                    'class' => 'form-control',
+                    'placeholder' => 'Doe',
+                ],
+            ])
+            ->getForm();
+
+        $form->submit($data);
+        $this->form = $form;
+        $this->errors = $this->validate($data);
     }
 
-    public function getInputFilterSpecification(): array
+    private function validate(array $data): array
     {
-        return [
-            [
-                'name' => 'email',
-                'required' => true,
-                'filters' => [
-                    ['name' => StringTrim::class],
-                    ['name' => \Laminas\Filter\StripNewlines::class],
-                    ['name' => StringToLower::class],
-                ],
-                'validators' => [
-                    [
-                        'name' => EmailAddress::class,
-                        'break_chain_on_failure' => true,
-                        'messages' => [
-                            EmailAddress::INVALID => 'Invalid email format',
-                            EmailAddress::INVALID_FORMAT => 'Invalid email format',
-                            EmailAddress::INVALID_HOSTNAME => 'Invalid email hostname',
-                            EmailAddress::INVALID_LOCAL_PART => 'Invalid email local part',
-                            EmailAddress::INVALID_MX_RECORD => 'Invalid email hostname',
-                            EmailAddress::INVALID_SEGMENT => 'Invalid email hostname',
-                            EmailAddress::LENGTH_EXCEEDED => 'Email is too long',
-                        ],
-                    ],
-                ],
-            ],
-            [
-                'name' => 'password',
-                'required' => true,
-                'validators' => [
-                    [
-                        'name' => StringLength::class,
-                        'options' => [
-                            'min' => 8,
-                            'messages' => [
-                                StringLength::TOO_SHORT => 'Password must be at least 8 characters',
-                            ],
-                        ],
-                        'break_chain_on_failure' => true,
-                    ],
-                ],
-            ],
-            [
-                'name' => 'firstName',
-                'required' => false,
-                'filters' => [
-                    ['name' => StringTrim::class],
-                ],
-            ],
-            [
-                'name' => 'lastName',
-                'required' => false,
-                'filters' => [
-                    ['name' => StringTrim::class],
-                ],
-            ],
-        ];
+        $errors = [];
+
+        $emailConstraint = new NotBlank(message: 'Email is required');
+        $emailFormatConstraint = new Email(message: 'Invalid email format', mode: Email::VALIDATION_MODE_HTML5);
+        
+        $emailViolations = $this->validator->validate($data['email'] ?? '', [$emailConstraint, $emailFormatConstraint]);
+        if (count($emailViolations) > 0) {
+            $errors['email'] = [];
+            foreach ($emailViolations as $violation) {
+                $errors['email'][] = $violation->getMessage();
+            }
+        }
+
+        $passwordConstraint = new NotBlank(message: 'Password is required');
+        $passwordLengthConstraint = new Length(min: 8, minMessage: 'Password must be at least {{ limit }} characters');
+        
+        $passwordViolations = $this->validator->validate($data['password'] ?? '', [$passwordConstraint, $passwordLengthConstraint]);
+        if (count($passwordViolations) > 0) {
+            $errors['password'] = [];
+            foreach ($passwordViolations as $violation) {
+                $errors['password'][] = $violation->getMessage();
+            }
+        }
+
+        return $errors;
+    }
+
+    public function isValid(): bool
+    {
+        if ($this->form === null) {
+            return false;
+        }
+        return count($this->errors) === 0;
+    }
+
+    public function getData(): array
+    {
+        if ($this->form === null) {
+            return [];
+        }
+        
+        $data = [];
+        foreach (['email', 'password', 'firstName', 'lastName'] as $field) {
+            $data[$field] = $this->form->get($field)->getNormData();
+        }
+        
+        if (isset($data['email'])) {
+            $data['email'] = strtolower(trim($data['email'] ?? ''));
+        }
+        if (isset($data['firstName'])) {
+            $data['firstName'] = trim($data['firstName'] ?? '');
+        }
+        if (isset($data['lastName'])) {
+            $data['lastName'] = trim($data['lastName'] ?? '');
+        }
+        
+        return $data;
+    }
+
+    public function getMessages(): array
+    {
+        return $this->errors;
     }
 }

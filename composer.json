@@ -24,10 +24,9 @@
     "doctrine/collections": "3.1.x-dev",
     "doctrine/orm": "4.0.x-dev",
     "symfony/cache": "8.1.x-dev",
-    "laminas/laminas-form": "^2.6",
-    "laminas/laminas-inputfilter": "^2.5",
-    "laminas/laminas-validator": "^2.5",
-    "laminas/laminas-servicemanager": "^2.6",
+    "symfony/form": "8.1.x-dev",
+    "symfony/validator": "8.1.x-dev",
+    "symfony/framework-bundle": "8.1.x-dev",
     "league/fractal": "1.0.x-dev",
     "league/config": "^1.1"
   },
