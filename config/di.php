@@ -194,7 +194,7 @@ $container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () u
     $isDevMode = ($appEnv === 'development');
 
     if ($dbDriver === 'pdo_sqlite') {
-        $dbPath = $configService->get('db.path') ?: dirname(__DIR__) . '/var/data/database.sqlite';
+        $dbPath = $configService->get('db.path') ?? dirname(realpath(__DIR__)) . '/var/data/database.sqlite';
         if (!is_dir(dirname($dbPath))) {
             mkdir(dirname($dbPath), 0755, true);
         }

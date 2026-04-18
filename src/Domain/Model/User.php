@@ -8,6 +8,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'users')]
@@ -16,7 +17,7 @@ class User
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'NONE')]
     #[ORM\Column(type: 'uuid', unique: true)]
-    private Uuid $id;
+    private UuidInterface $id;
 
     #[ORM\Column(type: 'string', length: 255, unique: true)]
     private string $email;
@@ -55,7 +56,7 @@ class User
         $this->posts = new ArrayCollection();
     }
 
-    public function getId(): Uuid
+    public function getId(): UuidInterface
     {
         return $this->id;
     }

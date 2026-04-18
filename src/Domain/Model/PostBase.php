@@ -6,21 +6,20 @@ namespace PrototypeIn\App\Domain\Model;
 
 use Doctrine\ORM\Mapping as ORM;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
-/**
- * @ORM\Entity
- * @ORM\InheritanceType("SINGLE_TABLE")
- * @ORM\DiscriminatorColumn(name="post_type", type="string", length=50)
- * @ORM\DiscriminatorMap({
- *     "post" = "PrototypeIn\App\Domain\Model\Post"
- * })
- */
+#[ORM\Entity]
+#[ORM\InheritanceType('SINGLE_TABLE')]
+#[ORM\DiscriminatorColumn(name: 'post_type', type: 'string', length: 50)]
+#[ORM\DiscriminatorMap([
+    'post' => Post::class,
+])]
 abstract class PostBase
 {
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'NONE')]
     #[ORM\Column(type: 'uuid', unique: true)]
-    private Uuid $id;
+    private UuidInterface $id;
 
     #[ORM\Column(type: 'string', length: 255)]
     private string $title;
@@ -45,7 +44,7 @@ abstract class PostBase
         $this->updatedAt = new \DateTimeImmutable();
     }
 
-    public function getId(): Uuid
+    public function getId(): UuidInterface
     {
         return $this->id;
     }
