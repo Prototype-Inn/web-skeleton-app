@@ -22,9 +22,19 @@ class RoleRepository
 
     public function findByType(string $roleType): ?RoleBase
     {
-        return $this->em->getRepository(RoleBase::class)->findOneBy([
-            'roleType' => $roleType,
-        ]);
+        $class = match ($roleType) {
+            'admin' => \PrototypeIn\App\Domain\Model\AdminRole::class,
+            'user' => \PrototypeIn\App\Domain\Model\UserRole::class,
+            'guest' => \PrototypeIn\App\Domain\Model\GuestRole::class,
+            default => null,
+        };
+
+        if ($class === null) {
+            return null;
+        }
+
+        $results = $this->em->getRepository($class)->findAll();
+        return $results[0] ?? null;
     }
 
     public function findAll(): array

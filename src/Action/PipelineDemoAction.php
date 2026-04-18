@@ -7,6 +7,7 @@ namespace PrototypeIn\App\Action;
 use PrototypeIn\App\Pipeline\RequestProcessingPipeline;
 use PrototypeIn\App\Pipeline\PipelinePayload;
 use PrototypeIn\App\Domain\Repository\UserRepository;
+use PrototypeIn\App\Domain\Repository\RoleRepository;
 use PrototypeIn\App\Domain\Service\PasswordService;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -17,17 +18,20 @@ class PipelineDemoAction
 {
     private RequestProcessingPipeline $pipeline;
     private UserRepository $userRepository;
+    private RoleRepository $roleRepository;
     private PasswordService $passwordService;
     private LoggerInterface $logger;
 
     public function __construct(
         RequestProcessingPipeline $pipeline,
         UserRepository $userRepository,
+        RoleRepository $roleRepository,
         PasswordService $passwordService,
         LoggerInterface $logger
     ) {
         $this->pipeline = $pipeline;
         $this->userRepository = $userRepository;
+        $this->roleRepository = $roleRepository;
         $this->passwordService = $passwordService;
         $this->logger = $logger;
     }
@@ -94,9 +98,16 @@ class PipelineDemoAction
             $user->setFirstName($firstName);
             $user->setLastName($lastName);
 
+            $defaultRole = $this->roleRepository->findByType('user');
+            if ($defaultRole !== null) {
+                $user->addRole($defaultRole);
+            }
+
             $this->userRepository->save($user);
 
             $this->logger->info('Pipeline: user created', ['userId' => $user->getId()->toString()]);
+
+            $roles = array_map(fn($role) => $role->getRoleType(), $user->getRoles());
 
             return new JsonResponse([
                 'success' => true,
@@ -111,6 +122,7 @@ class PipelineDemoAction
                 'user' => [
                     'id' => $user->getId()->toString(),
                     'email' => $user->getEmail(),
+                    'roles' => $roles,
                 ],
             ], 201);
         };
