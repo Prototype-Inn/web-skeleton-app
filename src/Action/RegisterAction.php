@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PrototypeIn\App\Action;
 
 use PrototypeIn\App\Domain\Repository\UserRepository;
+use PrototypeIn\App\Domain\Repository\RoleRepository;
 use PrototypeIn\App\Domain\Service\PasswordService;
 use PrototypeIn\App\Form\RegisterForm;
 use Psr\Http\Message\ServerRequestInterface;
@@ -14,15 +15,18 @@ use Laminas\Diactoros\Response\JsonResponse;
 class RegisterAction
 {
     private UserRepository $userRepository;
+    private RoleRepository $roleRepository;
     private PasswordService $passwordService;
     private RegisterForm $form;
 
     public function __construct(
         UserRepository $userRepository,
+        RoleRepository $roleRepository,
         PasswordService $passwordService,
         RegisterForm $form
     ) {
         $this->userRepository = $userRepository;
+        $this->roleRepository = $roleRepository;
         $this->passwordService = $passwordService;
         $this->form = $form;
     }
@@ -60,6 +64,12 @@ class RegisterAction
         $user->setPasswordHash($this->passwordService->hash($password));
         $user->setFirstName($firstName);
         $user->setLastName($lastName);
+
+        $userRole = $this->roleRepository->findByType('user');
+        if ($userRole === null) {
+            throw new \RuntimeException('Role "user" not found in database. Run migrations.');
+        }
+        $user->addRole($userRole);
 
         $this->userRepository->save($user);
 

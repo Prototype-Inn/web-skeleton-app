@@ -231,6 +231,11 @@ $container->addShared(PrototypeIn\App\Domain\Repository\UserRepository::class, f
         $container->get(\Doctrine\ORM\EntityManagerInterface::class)
     );
 });
+$container->addShared(PrototypeIn\App\Domain\Repository\RoleRepository::class, function () use ($container) {
+    return new PrototypeIn\App\Domain\Repository\RoleRepository(
+        $container->get(\Doctrine\ORM\EntityManagerInterface::class)
+    );
+});
 
 // Register Forms
 $container->addShared(RegisterForm::class);
