@@ -33,7 +33,13 @@ class RegisterAction
 
     public function handle(ServerRequestInterface $request, array $args): ResponseInterface
     {
-        $data = $request->getParsedBody();
+        $contentType = $request->getHeaderLine('Content-Type');
+        if (!str_contains($contentType, 'application/json')) {
+            return new JsonResponse(['success' => false, 'errors' => ['request' => 'Content-Type must be application/json']], 400);
+        }
+
+        $body = (string) $request->getBody();
+        $data = json_decode($body, true) ?? [];
 
         $this->form->setData($data);
 
@@ -79,6 +85,7 @@ class RegisterAction
             'user' => [
                 'id' => $user->getId()->toString(),
                 'email' => $user->getEmail(),
+                'roles' => array_map(fn($role) => $role->getName(), $user->getRoles()),
             ],
         ], 201);
     }
