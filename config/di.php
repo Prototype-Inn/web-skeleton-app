@@ -184,7 +184,7 @@ class UnifiedLoggerServiceProvider extends \League\Container\ServiceProvider\Abs
 $container->addServiceProvider(new UnifiedLoggerServiceProvider());
 
 // Doctrine ORM Configuration
-$container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () use ($dbDriver, $appEnv) {
+$container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () use ($configService, $dbDriver, $appEnv) {
     // Register UUID type for ramsey/uuid-doctrine
     if (!\Doctrine\DBAL\Types\Type::hasType('uuid')) {
         \Doctrine\DBAL\Types\Type::addType('uuid', \Ramsey\Uuid\Doctrine\UuidType::class);
