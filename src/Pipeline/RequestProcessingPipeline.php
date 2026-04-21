@@ -93,8 +93,13 @@ class ValidationStage
 
     public function __invoke(PipelinePayload $payload): PipelinePayload
     {
-        $this->logger?->debug('Pipeline: ValidationStage started');
-        
+        $requestId = (string) $payload->request->getAttribute('request_id', 'n/a');
+        $this->logger?->debug('Pipeline stage started', [
+            'event' => 'pipeline.stage.start',
+            'stage' => 'validation',
+            'request_id' => $requestId,
+        ]);
+
         $body = (string) $payload->request->getBody();
         $data = json_decode($body, true) ?? [];
 
@@ -112,8 +117,14 @@ class ValidationStage
             $errors['password'] = 'Password must be at least 8 characters';
         }
 
-        $this->logger?->debug('Pipeline: ValidationStage completed', ['errors' => $errors]);
-        
+        $this->logger?->debug('Pipeline stage completed', [
+            'event' => 'pipeline.stage.end',
+            'stage' => 'validation',
+            'request_id' => $requestId,
+            'error_fields' => array_keys($errors),
+            'is_valid' => empty($errors),
+        ]);
+
         return $payload->withData($data)->withErrors($errors);
     }
 }
@@ -129,8 +140,13 @@ class SanitizationStage
 
     public function __invoke(PipelinePayload $payload): PipelinePayload
     {
-        $this->logger?->debug('Pipeline: SanitizationStage started');
-        
+        $requestId = (string) $payload->request->getAttribute('request_id', 'n/a');
+        $this->logger?->debug('Pipeline stage started', [
+            'event' => 'pipeline.stage.start',
+            'stage' => 'sanitization',
+            'request_id' => $requestId,
+        ]);
+
         $data = $payload->data;
         
         if (isset($data['email'])) {
@@ -143,8 +159,13 @@ class SanitizationStage
             $data['lastName'] = trim($data['lastName']);
         }
 
-        $this->logger?->debug('Pipeline: SanitizationStage completed', ['data' => $data]);
-        
+        $this->logger?->debug('Pipeline stage completed', [
+            'event' => 'pipeline.stage.end',
+            'stage' => 'sanitization',
+            'request_id' => $requestId,
+            'fields' => array_keys($data),
+        ]);
+
         return $payload->withData($data);
     }
 }
@@ -160,14 +181,25 @@ class AuthorizationStage
 
     public function __invoke(PipelinePayload $payload): PipelinePayload
     {
-        $this->logger?->debug('Pipeline: AuthorizationStage started');
-        
+        $requestId = (string) $payload->request->getAttribute('request_id', 'n/a');
+        $this->logger?->debug('Pipeline stage started', [
+            'event' => 'pipeline.stage.start',
+            'stage' => 'authorization',
+            'request_id' => $requestId,
+        ]);
+
         $userId = $payload->request->getAttribute('user_id');
-        
+
         $authorized = ($userId !== null) || ($payload->request->getMethod() === 'POST');
-        
-        $this->logger?->debug('Pipeline: AuthorizationStage completed', ['authorized' => $authorized]);
-        
+
+        $this->logger?->debug('Pipeline stage completed', [
+            'event' => 'pipeline.stage.end',
+            'stage' => 'authorization',
+            'request_id' => $requestId,
+            'authorized' => $authorized,
+            'method' => $payload->request->getMethod(),
+        ]);
+
         return $payload->withAuthorized($authorized);
     }
 }
@@ -183,8 +215,12 @@ class ProcessingStage
 
     public function __invoke(PipelinePayload $payload): PipelinePayload
     {
-        $this->logger?->debug('Pipeline: ProcessingStage completed');
-        
+        $this->logger?->debug('Pipeline stage completed', [
+            'event' => 'pipeline.stage.end',
+            'stage' => 'processing',
+            'request_id' => (string) $payload->request->getAttribute('request_id', 'n/a'),
+        ]);
+
         return $payload;
     }
 }

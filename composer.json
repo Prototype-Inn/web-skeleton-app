@@ -3,7 +3,7 @@
   "description": "-",
   "type": "project",
   "require": {
-    "monolog/monolog": "*",
+    "monolog/monolog": "^3.7",
     "oryx/mvc": "dev-develop",
     "oryx/adr": "dev-develop",
     "prototype-in/acl": "dev-develop",
@@ -82,7 +82,7 @@
   ],
   "require-dev": {
     "phpunit/phpunit": "*",
-    "mockery/mockery": "*"
+    "mockery/mockery": "^1.6"
   },
   "license": "MIT",
   "autoload": {
@@ -108,5 +108,6 @@
       "email": "p30311619@gmail.com"
     }
   ],
-  "minimum-stability": "dev"
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

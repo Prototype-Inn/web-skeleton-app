@@ -38,7 +38,11 @@ class PipelineDemoAction
 
     public function handle(ServerRequestInterface $request, array $args): ResponseInterface
     {
+        $requestId = (string) $request->getAttribute('request_id', 'n/a');
+
         $this->logger->info('PipelineDemoAction started', [
+            'event' => 'pipeline.action.start',
+            'request_id' => $requestId,
             'method' => $request->getMethod(),
             'uri' => (string) $request->getUri(),
         ]);
@@ -46,6 +50,8 @@ class PipelineDemoAction
         $finalHandler = function (PipelinePayload $payload): ResponseInterface {
             if (!$payload->isValid) {
                 $this->logger->warning('Pipeline validation failed', [
+                    'event' => 'pipeline.validation.failed',
+                    'request_id' => $requestId,
                     'errors' => $payload->errors,
                 ]);
 
@@ -63,7 +69,10 @@ class PipelineDemoAction
             }
 
             if (!$payload->authorized) {
-                $this->logger->warning('Pipeline authorization failed', []);
+                $this->logger->warning('Pipeline authorization failed', [
+                    'event' => 'pipeline.authorization.failed',
+                    'request_id' => $requestId,
+                ]);
 
                 return new JsonResponse([
                     'success' => false,
@@ -79,7 +88,11 @@ class PipelineDemoAction
 
             $existingUser = $this->userRepository->findByEmail($email);
             if ($existingUser !== null) {
-                $this->logger->warning('Pipeline: email already exists', ['email' => $email]);
+                $this->logger->warning('Pipeline: email already exists', [
+                    'event' => 'pipeline.email.conflict',
+                    'request_id' => $requestId,
+                    'email' => $email,
+                ]);
 
                 return new JsonResponse([
                     'success' => false,
@@ -105,7 +118,11 @@ class PipelineDemoAction
 
             $this->userRepository->save($user);
 
-            $this->logger->info('Pipeline: user created', ['userId' => $user->getId()->toString()]);
+            $this->logger->info('Pipeline: user created', [
+                'event' => 'pipeline.user.created',
+                'request_id' => $requestId,
+                'user_id' => $user->getId()->toString(),
+            ]);
 
             $roles = array_map(fn($role) => $role->getRoleType(), $user->getRoles());
 

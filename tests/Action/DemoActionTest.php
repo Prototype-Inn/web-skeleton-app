@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PrototypeIn\Tests\Action;
+namespace PrototypeIn\App\Tests\Action;
 
 use Mockery;
-use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrototypeIn\App\Action\DemoAction;
 use PrototypeIn\App\Domain\Model\User;
 use PrototypeIn\App\Domain\Repository\UserRepository;
@@ -14,6 +13,7 @@ use PrototypeIn\App\Form\DemoForm;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
+use PrototypeIn\App\Tests\Support\MockeryTestCase;
 
 class DemoActionTest extends MockeryTestCase
 {
@@ -36,12 +36,6 @@ class DemoActionTest extends MockeryTestCase
             $this->passwordService,
             $this->demoForm
         );
-    }
-
-    protected function tearDown(): void
-    {
-        Mockery::close();
-        parent::tearDown();
     }
 
     public function testShowReturnsJsonResponseWithFormSchema(): void

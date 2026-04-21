@@ -18,6 +18,9 @@ return [
         'name' => 'app',
         'path' => dirname(realpath(__DIR__)) . '/logs/app.log',
         'level' => Logger::DEBUG, // Default to DEBUG for development
+        'channels' => ['app', 'http', 'pipeline', 'security', 'orm'],
+        'redact_keys' => ['password', 'token', 'authorization', 'cookie', 'set-cookie'],
+        'json_in_production' => true,
+        'rotate_keep_days' => 14,
     ],
 ];
-

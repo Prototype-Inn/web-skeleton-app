@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PrototypeIn\App\Tests\Form;
 
-use Mockery\Adapter\Phpunit\MockeryTestCase;
 use PrototypeIn\App\Form\RegisterForm;
+use PrototypeIn\App\Tests\Support\MockeryTestCase;
 
 class RegisterFormTest extends MockeryTestCase
 {
@@ -14,11 +14,6 @@ class RegisterFormTest extends MockeryTestCase
     protected function setUp(): void
     {
         $this->form = new RegisterForm();
-    }
-
-    protected function tearDown(): void
-    {
-        \Mockery::close();
     }
 
     public function testFormIsValidWithCorrectData(): void

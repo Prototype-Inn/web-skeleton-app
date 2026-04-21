@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace PrototypeIn\App\Event;
 
 use Doctrine\ORM\Event\LoadClassMetadataEventArgs;
-use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 
 class ORMEventListener
 {
-    private Logger $logger;
+    private LoggerInterface $logger;
 
-    public function __construct(Logger $logger)
+    public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
     }

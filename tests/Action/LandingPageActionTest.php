@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PrototypeIn\App\Tests\Action;
 
-use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use PrototypeIn\App\Action\LandingPageAction;
 use PrototypeIn\App\Responder\HtmlResponder;
@@ -12,6 +11,7 @@ use Psr\Http\Message\ResponseInterface;
 use PrototypeIn\Abac\Services\AbacService;
 use Laminas\Diactoros\Response\JsonResponse;
 use Laminas\Diactoros\ServerRequest;
+use PrototypeIn\App\Tests\Support\MockeryTestCase;
 
 class LandingPageActionTest extends MockeryTestCase
 {
@@ -45,11 +45,6 @@ class LandingPageActionTest extends MockeryTestCase
         $request = \Mockery::mock(ServerRequestInterface::class);
         $request->shouldReceive('getAttribute')->with('user_id', null)->andReturn(null)->byDefault();
         return $request;
-    }
-
-    protected function tearDown(): void
-    {
-        \Mockery::close();
     }
 
     public function testHandleReturnsLandingPageViewModel(): void

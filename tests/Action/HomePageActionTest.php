@@ -4,15 +4,14 @@ declare(strict_types=1);
 
 namespace PrototypeIn\App\Tests\Action;
 
-use Mockery\Adapter\Phpunit\MockeryTestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use PrototypeIn\App\Action\HomePageAction;
 use PrototypeIn\App\Responder\HtmlResponder;
 use Psr\Http\Message\ResponseInterface;
-use Twig\Environment;
 use PrototypeIn\Abac\Services\AbacService;
 use Laminas\Diactoros\Response\JsonResponse;
 use Laminas\Diactoros\ServerRequest;
+use PrototypeIn\App\Tests\Support\MockeryTestCase;
 
 class HomePageActionTest extends MockeryTestCase
 {
@@ -25,7 +24,6 @@ class HomePageActionTest extends MockeryTestCase
 
     private function createMockHtmlResponder(): HtmlResponder
     {
-        $mockTwig = \Mockery::mock(Environment::class);
         $mockResponse = \Mockery::mock(ResponseInterface::class);
 
         $responder = \Mockery::mock(HtmlResponder::class);
@@ -40,11 +38,6 @@ class HomePageActionTest extends MockeryTestCase
         $abac = \Mockery::mock(AbacService::class);
         $abac->shouldReceive('evaluateWithMatrix')->andReturn($accessGranted);
         return $abac;
-    }
-
-    protected function tearDown(): void
-    {
-        \Mockery::close();
     }
 
     private function createMockRequest(): ServerRequestInterface
@@ -106,4 +99,3 @@ class HomePageActionTest extends MockeryTestCase
         self::assertStringContainsString('Access Denied', (string)$response->getBody());
     }
 }
-

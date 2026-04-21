@@ -17,16 +17,22 @@ use PrototypeIn\App\Responder\HtmlResponder;
 use PrototypeIn\App\Form\RegisterForm;
 use PrototypeIn\App\Form\DemoForm;
 use Monolog\Logger;
+use Monolog\Formatter\JsonFormatter;
+use Monolog\Formatter\LineFormatter;
+use Monolog\Handler\FingersCrossedHandler;
+use Monolog\Handler\RotatingFileHandler;
 use Monolog\Handler\StreamHandler;
+use Monolog\Processor\MemoryUsageProcessor;
+use Monolog\Processor\UidProcessor;
 use Bramus\Monolog\Formatter\ColoredLineFormatter;
 use Psr\Log\LoggerInterface;
+use PrototypeIn\App\Logging\RedactSensitiveDataProcessor;
+use PrototypeIn\App\Logging\RequestIdProcessor;
 use PrototypeIn\UrnRouter\Contracts\UrnRouterInterface;
 use PrototypeIn\App\Service\UrnRouter;
 use League\Fractal\Manager;
 use PrototypeIn\App\Service\ConfigService;
-use League\Config\ConfigurationBuilder; // Added
-use League\Config\Configuration; // Added
-use Nette\Schema\Schema; // Added
+use League\Config\Configuration;
 
 $appEnv = getenv('APP_MODE') ?: 'development';
 
@@ -34,7 +40,7 @@ $configData = require dirname(__DIR__) . '/config/config.php';
 $dbSchema = require dirname(__DIR__) . '/config/schema/database.php';
 $monologSchema = require dirname(__DIR__) . '/config/schema/monolog.php';
 
-$config = new League\Config\Configuration();
+$config = new Configuration();
 $config->addSchema('db', $dbSchema);
 $config->addSchema('logger', $monologSchema);
 $config->merge($configData);
@@ -108,37 +114,71 @@ $container->addShared('abac.config', function () {
 // Define ABAC service
 $container->addShared(PrototypeIn\Abac\Services\AbacService::class, function () use ($container) {
     $config = $container->get('abac.config');
-    $logger = $container->get(Logger::class);
+    $logger = $container->get('logger.security');
     return AbacServiceFactory::createFromConfigArray($config, $logger);
 });
 
 // Define Monolog service
 $container->addShared(Logger::class, function () use ($configService, $appEnv) {
-    $logPath = $configService->get('logger.path');
-    $logLevel = $configService->get('logger.level');
-    $logName = $configService->get('logger.name');
+    $logPath = (string) $configService->get('logger.path');
+    $logLevel = (int) $configService->get('logger.level');
+    $logName = (string) $configService->get('logger.name');
+    $rotateKeepDays = (int) $configService->get('logger.rotate_keep_days', 14);
+    $jsonInProduction = (bool) $configService->get('logger.json_in_production', true);
+    $redactKeys = $configService->get('logger.redact_keys', []);
 
     if (!is_dir(dirname($logPath))) {
         mkdir(dirname($logPath), 0755, true);
     }
-    
+
     $logger = new Logger($logName);
-    $handler = new StreamHandler($logPath, $logLevel);
-    
-    if ($appEnv === 'development') {
-        $formatter = new ColoredLineFormatter(null, '[%datetime%] %channel%.%level_name%: %message% %context% %extra%', 'Y-m-d H:i:s');
+
+    if ($appEnv === 'production') {
+        $streamHandler = new RotatingFileHandler($logPath, $rotateKeepDays, $logLevel);
     } else {
-        $formatter = new \Monolog\Formatter\LineFormatter('[%datetime%] %channel%.%level_name%: %message% %context% %extra%');
+        $streamHandler = new StreamHandler($logPath, $logLevel);
     }
-    
-    $handler->setFormatter($formatter);
-    $logger->pushHandler($handler);
+
+    if ($appEnv === 'development') {
+        $formatter = new ColoredLineFormatter(
+            null,
+            '[%datetime%] %channel%.%level_name%: %message% %context% %extra%',
+            'Y-m-d H:i:s'
+        );
+    } elseif ($appEnv === 'production' && $jsonInProduction) {
+        $formatter = new JsonFormatter();
+    } else {
+        $formatter = new LineFormatter('[%datetime%] %channel%.%level_name%: %message% %context% %extra%');
+    }
+
+    $streamHandler->setFormatter($formatter);
+
+    if ($appEnv === 'production') {
+        $logger->pushHandler(new FingersCrossedHandler($streamHandler, Logger::WARNING));
+    } else {
+        $logger->pushHandler($streamHandler);
+    }
+
+    $logger->pushProcessor(new UidProcessor(16));
+    $logger->pushProcessor(new MemoryUsageProcessor(true));
+    $logger->pushProcessor(new RequestIdProcessor());
+    $logger->pushProcessor(new RedactSensitiveDataProcessor(
+        is_array($redactKeys) ? $redactKeys : []
+    ));
+
     return $logger;
 });
 
+$container->addShared('logger.app', fn() => $container->get(Logger::class)->withName('app'));
+$container->addShared('logger.http', fn() => $container->get(Logger::class)->withName('http'));
+$container->addShared('logger.pipeline', fn() => $container->get(Logger::class)->withName('pipeline'));
+$container->addShared('logger.security', fn() => $container->get(Logger::class)->withName('security'));
+$container->addShared('logger.orm', fn() => $container->get(Logger::class)->withName('orm'));
+$container->addShared(LoggerInterface::class, fn() => $container->get('logger.app'));
+
 // Define Stool Request Logger (shared instance)
 $container->addShared(RequestLoggerInterface::class, function () use ($container) {
-    return new RequestLogger($container->get(Logger::class));
+    return new RequestLogger($container->get('logger.http'));
 });
 
 // Define Stool ADR Logger Middleware
@@ -151,37 +191,12 @@ $container->addShared(AdrLoggerMiddleware::class, function () use ($container) {
 
 // Define Comet Form Submission Logger Middleware
 $container->addShared(FormSubmissionLogger::class, function () use ($container) {
-    return new FormSubmissionLogger($container->get(Logger::class));
+    return new FormSubmissionLogger($container->get('logger.http'));
 });
 
-// Unified Logger Bridge - makes app's Monolog available as PSR LoggerInterface
-// This ensures oryx/orm MvcServiceProvider uses the same logger instance
-class UnifiedLoggerServiceProvider extends \League\Container\ServiceProvider\AbstractServiceProvider
-{
-    protected array $provides = [\Psr\Log\LoggerInterface::class, \PrototypeIn\App\Event\ORMEventListener::class];
-
-    public function register(): void
-    {
-        $container = $this->getContainer();
-        
-        // Bridge Monolog to PSR LoggerInterface for oryx/orm
-        $container->addShared(\Psr\Log\LoggerInterface::class, function () use ($container) {
-            return $container->get(Logger::class);
-        });
-        
-        // Register ORMEventListener with app's logger
-        $container->addShared(\PrototypeIn\App\Event\ORMEventListener::class, function () use ($container) {
-            return new \PrototypeIn\App\Event\ORMEventListener($container->get(Logger::class));
-        });
-    }
-
-    public function provides(string $id): bool
-    {
-        return in_array($id, $this->provides, true);
-    }
-}
-
-$container->addServiceProvider(new UnifiedLoggerServiceProvider());
+$container->addShared(PrototypeIn\App\Event\ORMEventListener::class, function () use ($container) {
+    return new PrototypeIn\App\Event\ORMEventListener($container->get('logger.orm'));
+});
 
 // Doctrine ORM Configuration
 $container->addShared(\Doctrine\ORM\EntityManagerInterface::class, function () use ($configService, $dbDriver, $appEnv) {
@@ -242,7 +257,9 @@ $container->addShared(RegisterForm::class);
 $container->addShared(DemoForm::class);
 
 // Register Pipeline
-$container->addShared(PrototypeIn\App\Pipeline\RequestProcessingPipeline::class);
+$container->addShared(PrototypeIn\App\Pipeline\RequestProcessingPipeline::class, function () use ($container) {
+    return new PrototypeIn\App\Pipeline\RequestProcessingPipeline($container->get('logger.pipeline'));
+});
 
 // Define configuration for the DI container.
 
