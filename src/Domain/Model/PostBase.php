@@ -12,7 +12,7 @@ use Ramsey\Uuid\UuidInterface;
 #[ORM\InheritanceType('SINGLE_TABLE')]
 #[ORM\DiscriminatorColumn(name: 'post_type', type: 'string', length: 50)]
 #[ORM\DiscriminatorMap([
-    'post' => Post::class,
+    'post' => PostBase::class,
 ])]
 abstract class PostBase
 {

@@ -44,7 +44,7 @@ class User
     #[ORM\JoinTable(name: 'user_roles')]
     private Collection $roles;
 
-    #[ORM\OneToMany(targetEntity: Post::class, mappedBy: 'author')]
+    #[ORM\OneToMany(targetEntity: PostBase::class, mappedBy: 'author')]
     private Collection $posts;
 
     public function __construct()
@@ -171,7 +171,7 @@ class User
         return $this->posts->toArray();
     }
 
-    public function addPost(Post $post): self
+    public function addPost(PostBase $post): self
     {
         if (!$this->posts->contains($post)) {
             $this->posts->add($post);
@@ -181,7 +181,7 @@ class User
         return $this;
     }
 
-    public function removePost(Post $post): self
+    public function removePost(PostBase $post): self
     {
         if ($this->posts->contains($post)) {
             $this->posts->removeElement($post);
