@@ -25,7 +25,6 @@ class RoleRepository
         $class = match ($roleType) {
             'admin' => \PrototypeIn\App\Domain\Model\AdminRole::class,
             'user' => \PrototypeIn\App\Domain\Model\UserRole::class,
-            'guest' => \PrototypeIn\App\Domain\Model\GuestRole::class,
             default => null,
         };
 

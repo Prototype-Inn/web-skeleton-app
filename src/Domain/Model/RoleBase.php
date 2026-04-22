@@ -15,7 +15,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\DiscriminatorMap([
     'admin' => AdminRole::class,
     'user' => UserRole::class,
-    'guest' => GuestRole::class,
 ])]
 abstract class RoleBase
 {
