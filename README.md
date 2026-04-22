@@ -82,7 +82,7 @@ The application follows a structured layout to maintain organization and clarity
 
 ```bash
 composer create-project prototype-in/web-skeleton-app my-naujasis-projet --repository='{"type": "vcs", "url": "https://gitlab.com/prototype.in/web-skeleton-app.git"}' --stability=dev
-cd my-new-project
+cd my-naujasis-projet
 composer install
 ```
 
