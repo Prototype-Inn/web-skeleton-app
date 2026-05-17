@@ -77,7 +77,7 @@
     },
     {
       "type": "vcs",
-      "url": "git@gitlab.com:prototype.in/google/mvvm.git"
+      "url": "git@github.com:Prototype-Inn/mvvm.git"
     }
   ],
   "require-dev": {
